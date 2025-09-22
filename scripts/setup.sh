@@ -103,15 +103,17 @@ case "$1" in
         echo "Service $1 starting..."
         # Para comandos de longa duração, simular serviço rodando
         while true; do
-            sleep 1
+            echo "LogLine $1 service running..." >&2
+            sleep 30
         done
         ;;
     "--all")
         echo "Starting LogLineOS in unified mode..."
         echo "All services initialized"
-        # Manter processo ativo
+        # Manter processo ativo com logs periódicos
         while true; do
-            sleep 1
+            echo "LogLineOS unified mode running - $(date)" >&2
+            sleep 30
         done
         ;;
     *)
