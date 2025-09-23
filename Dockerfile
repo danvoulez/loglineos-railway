@@ -1,18 +1,13 @@
 # LogLineOS Consciousness Binary Constellation - Railway Deployment
 FROM node:18-alpine
 
-# Install system dependencies for Rust and PostgreSQL client
-RUN apk add --no-cache \
-    rust \
-    cargo \
-    postgresql-client \
-    build-base \
-    openssl-dev
-
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Install system dependencies
+RUN apk add --no-cache curl
+
+# Copy package files first (for better caching)
 COPY package*.json ./
 
 # Install Node.js dependencies
@@ -23,7 +18,6 @@ COPY . .
 
 # Make binaries executable
 RUN chmod +x bin/logline_gateway.js
-RUN chmod +x bin/*.rs || true
 
 # Create data directories
 RUN mkdir -p /app/data /app/logs /app/data/contracts
@@ -35,7 +29,7 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
-# Start the LogLine Gateway
+# Start the LogLine Gateway (Node.js)
 CMD ["node", "bin/logline_gateway.js"]
 FROM python:3.11-slim
 
