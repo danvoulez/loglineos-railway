@@ -1,0 +1,19 @@
+# policy.apply_globe_decorado_v2.lll
+# Live policy for Globo Decorado V2 – ΔS⁺ activation
+meta:
+  logic_id: policy.apply_globe_decorado_v2
+  author: dan@logline.world
+  ts_created: 2025-09-16T00:00:00Z
+  signature: "<placeholder>"
+thresholds:
+  max_cvar95: 0.35
+  max_latency_ms: 30000
+  theta: 0.65
+window:
+  start: "02:00"
+  end: "06:00"
+throttle:
+  decisions_per_min: 30
+intents_allowed:
+  - critical
+  - fallback

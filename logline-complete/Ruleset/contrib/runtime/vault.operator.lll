@@ -1,0 +1,13 @@
+CONTRACT vault.operator {
+  PARAMS { merit_per_token:f64 = 1.0 }
+  STATE  { balances:map<string,f64> = {}, total_merit:f64 = 0.0 }
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY receive(receipt) {
+    let uid = receipt.user_id ?? "anon"
+    let merit = (receipt.quality ?? 0.0) * (receipt.tokens_out ?? 0.0) * merit_per_token
+    balances[uid] = (balances[uid]??0.0) + merit
+    total_merit += merit
+    bus.publish("vault.balance.update", { user_id:uid, merit, total:balances[uid], ts_ms:sys.time.now_ms() })
+  }
+  ENTRY balance(uid) -> f64 { return balances[uid] ?? 0.0 }
+}

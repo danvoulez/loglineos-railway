@@ -1,0 +1,10 @@
+policy vault@u1.0 {
+  when connector.register {
+    stake.add connector:current amount:stake_declared
+    receipt issue reason:"vault-register"
+  }
+  when connector.epoch with { error_rate > 0.05 } {
+    stake.decay connector:current percent:10
+    receipt issue reason:"vault-stake-decay"
+  }
+}

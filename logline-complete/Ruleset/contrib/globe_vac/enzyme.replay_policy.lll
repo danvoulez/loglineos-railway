@@ -1,0 +1,28 @@
+CONTRACT enzyme.replay_policy {
+  IMPORTS { bus.core as bus; sys.time; }
+  PARAMS { load_threshold:f64=0.40, hours:list<u32>=[2,3,4] }
+  FUNC can_run()->bool {
+    let hour = sys.time.hour_utc()
+    let ok_hour = false
+    for h in hours { if (h==hour) { ok_hour=true } }
+    if (!ok_hour) return false
+    let d = bus.depth("orbit.hot") + bus.depth("orbit.warm") + bus.depth("orbit.cold")
+    let load = (d as f64) / 10000.0  // proxy de carga
+    return load < load_threshold
+  }
+  ENTRY loop {
+    LOOP L {
+      if (CALL can_run()) {
+        let next = bus.next("dlq.queue")
+        if (next) {
+          bus.publish("enzyme.replay", next.span)
+          bus.publish("metrics.replay", { span_id: next.span?.span_id ?? "unknown", ts_ms: sys.time.now_ms() })
+        } else {
+          SLEEP 2_000
+        }
+      } else {
+        SLEEP 5_000
+      }
+    }
+  }
+}

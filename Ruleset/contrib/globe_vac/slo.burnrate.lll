@@ -1,0 +1,19 @@
+CONTRACT slo.burnrate {
+  IMPORTS { bus.core as bus; sys.time }
+  PARAMS { thresholds:map<string,f64>={ "eta":1.0, "hbv":1.0, "r99":1.0 } }
+  STATE  { win5m:map<string, list<f64>>, win1h:map<string, list<f64>> }
+  ENTRY on_metrics(m) {
+    // m: { η, hbv, r99, ts }
+    CALL add(win5m, "eta", m.η); CALL add(win5m, "hbv", m.hbv); CALL add(win5m, "r99", m.r99)
+    CALL add(win1h, "eta", m.η); CALL add(win1h, "hbv", m.hbv); CALL add(win1h, "r99", m.r99)
+    let b5 = CALL burn(win5m); let b1 = CALL burn(win1h)
+    bus.publish("slo.burn", { win:"5m", values:b5 }); bus.publish("slo.burn", { win:"1h", values:b1 })
+    if (b5.eta>thresholds.eta || b1.eta>thresholds.eta) { bus.publish("control.window", { action:"throttle.admission", level:"eta" }) }
+    if (b5.hbv>thresholds.hbv || b1.hbv>thresholds.hbv) { bus.publish("control.window", { action:"degrade.topology", level:"hbv" }) }
+  }
+  FUNC add(store, key, v) { if (!store[key]) store[key]=[]; store[key].push(v); if (store[key].length>60) store[key].shift() }
+  FUNC burn(store)->map<string,f64> {
+    return { eta: avg(store["eta"] ?? []), hbv: avg(store["hbv"] ?? []), r99: avg(store["r99"] ?? []) }
+  }
+  FUNC avg(xs)->f64 { if (!xs || xs.length==0) return 0.0; let s=0.0; for x in xs { s+=x }; return s / (xs.length as f64) }
+}

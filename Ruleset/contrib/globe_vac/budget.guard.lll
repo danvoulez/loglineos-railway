@@ -1,0 +1,20 @@
+CONTRACT budget.guard {
+  IMPORTS { bus.core as bus; sys.time }
+  STATE { caps:map<string, f64>, spend:map<string, f64> }
+  ENTRY set_cap(cfg) {
+    // cfg: { tenant_id, daily_eur_cap }
+    if (!cfg?.tenant_id) return
+    caps[cfg.tenant_id] = cfg.daily_eur_cap ?? 0.0
+    bus.publish("budget.cap.set", cfg)
+  }
+  ENTRY on_receipt(rec) {
+    // rec must include eur_cost and tenant_id
+    let t = rec?.tenant_id ?? "default"
+    let cap = caps[t] ?? 0.0
+    spend[t] = (spend[t] ?? 0.0) + (rec?.eur_cost ?? 0.0)
+    if (cap>0.0 && spend[t] > cap) {
+      bus.publish("budget.freeze", { tenant_id:t, spend:spend[t], cap:cap })
+      bus.publish("control.window", { action:"freeze.non_essential", tenant_id:t })
+    }
+  }
+}

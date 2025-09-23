@@ -1,0 +1,4 @@
+policy boot.merkle {
+  description: "attach merkle ledger on boot"
+  api { fn attach() -> receipt {} }
+}

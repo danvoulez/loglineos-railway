@@ -1,0 +1,5 @@
+package "sdk.tests.flags" version "0.1.0"
+property "flag_deterministic" {
+  given gen.flag(name="new_ui", ctx="user:123")
+  expect flag.eval("new_ui","user:123") == flag.eval("new_ui","user:123")
+}

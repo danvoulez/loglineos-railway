@@ -1,0 +1,37 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 7 · LEDGER DIAMANTE  —  “Livro de Esforço Acumulado”
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT ledger.append {
+  PARAMS { batch_max:u32=512, flush_interval_ms:u64=3000 }
+  STATE  { batch:list<any>=[], last_flush:u64=0 }
+  IMPORTS { sys.time; sys.fs; sys.hash; bus.core as bus }
+  FUNC compute_merkle(spans) -> string {
+    if (spans.len()==0) { return ""; }
+    let leaves = spans.map(s -> sys.hash.blake3(s))
+    while (leaves.len() > 1) {
+      let merged = []
+      for i in (0..leaves.len() by 2) {
+        let a = leaves[i]; let b = (i+1 < leaves.len()) ? leaves[i+1] : a
+        merged.push(sys.hash.blake3(a+b))
+      }
+      leaves = merged
+    }
+    return leaves[0]
+  }
+  FUNC flush_ledger() {
+    if (batch.len() == 0) { return; }
+    let ts     = sys.time.now_ms()
+    let merkle = CALL compute_merkle(batch)
+    let id     = sys.hash.blake3("batch"+ts+merkle)
+    let entry = { id, merkle, spans:batch, count:batch.len(), ts_ms:ts }
+    WRITE ndjson "/var/log/logline/ledger.ndjson" entry
+    for s in batch {
+      let receipt = { trace_id:s.trace_id, span_id:s.span_id, id, issued_at:ts, quality:s.quality ?? 0.0, signer:"ledger.append", merkle_root:merkle }
+      bus.publish("receipt.issued", receipt)
+    }
+    bus.publish("metrics.ledger", { batch_id:id, count:batch.len(), merkle, ts_ms:ts })
+    batch = []; last_flush = ts
+  }
+  ENTRY ingest(span) { batch.push(span); if (batch.len() >= batch_max) { CALL flush_ledger() } }
+  ENTRY loop { LOOP L { let now = sys.time.now_ms(); if (now - last_flush >= flush_interval_ms) { CALL flush_ledger() } SLEEP 500 } }
+}

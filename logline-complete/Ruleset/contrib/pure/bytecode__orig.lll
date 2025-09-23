@@ -1,0 +1,12 @@
+package "sdk.ir.bytecode" version "0.1.0"
+
+sum Instr =
+  | PushI(Int) | PushS(Text)
+  | AddI
+  | FieldGet(Text)
+  | NowMs
+  | MakeMap(List<Text>)
+  | Ret
+  | Yield
+
+record Program { op_id: Text, code: List<Instr> }

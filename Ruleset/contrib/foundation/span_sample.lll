@@ -1,0 +1,11 @@
+header:
+  span_id: span-0001
+  author: danvoulez
+  tenant_id: voulezvous
+  template_id: register.create
+payload:
+  contract_type: effort_log
+  content: "Dan criou um novo span de esforço computável."
+  metadata:
+    location: loja
+    timestamp: 2025-08-29T10:00:00Z

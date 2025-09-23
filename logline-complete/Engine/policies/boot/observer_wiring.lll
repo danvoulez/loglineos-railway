@@ -1,0 +1,4 @@
+policy boot.observer_wiring {
+  description: "attach observer wiring on boot"
+  api { fn attach() -> receipt {} }
+}

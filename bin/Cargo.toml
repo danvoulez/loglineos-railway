@@ -1,0 +1,39 @@
+[package]
+name = "loglineos_binaries"
+version = "1.0.0"
+edition = "2021"
+
+[[bin]]
+name = "logline_motor"
+path = "logline_motor.rs"
+
+[[bin]]
+name = "registry_create"
+path = "registry_create.rs"
+
+[[bin]]
+name = "contract_runtime"
+path = "contract_runtime.rs"
+
+[[bin]]
+name = "span_exec"
+path = "span_exec.rs"
+
+[[bin]]
+name = "bootstrap_farm"
+path = "bootstrap_farm.rs"
+
+[dependencies]
+clap = "2.34"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1.0", features = ["full"] }
+
+[build-dependencies]
+# For embedding build metadata
+vergen = "8.0"
+
+[features]
+default = []

@@ -1,0 +1,8 @@
+workflow_id: create_tenant_workflow
+states:
+  - state: draft
+    transitions: [submitted]
+  - state: submitted
+    transitions: [approved]
+  - state: approved
+    transitions: []

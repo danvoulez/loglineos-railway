@@ -1,0 +1,6 @@
+policy gdpr@eu {
+  when span.contains_pii == true and tenant.region in ["eu-west","eu-central","pt"] {
+    route lane:"quarantine"
+    receipt issue reason:"gdpr-quarantine"
+  }
+}

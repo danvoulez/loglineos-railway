@@ -1,0 +1,36 @@
+contract {
+  version: "1.0"
+  id: "trust.policy"
+  workflow: "trust"
+  flow: "policy"
+  tags: ["trust","policy","refined"]
+  payload {
+    rules: <<'TEXT'
+{
+  "allow_triggers": [
+    "http",
+    "timer",
+    "event"
+  ],
+  "allow_flows": [
+    "routes",
+    "document",
+    "agent",
+    "wallet",
+    "registry",
+    "onboarding"
+  ],
+  "deny_tags": [
+    "dangerous",
+    "external_downloads:false"
+  ]
+}
+TEXT>>
+  }
+  exec { run: ["ruleset.apply"] }
+  signature { required: true signer: "logline-id://owner" }
+  federation { visibility: "public" allow: ["*"] }
+  provenance { source: <<'TEXT'
+refine.added
+TEXT>> migrated_at: "2025-09-15T08:25:24Z" }
+}

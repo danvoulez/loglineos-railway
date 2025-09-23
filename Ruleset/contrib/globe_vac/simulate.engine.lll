@@ -1,0 +1,27 @@
+CONTRACT simulate.engine {
+  IMPORTS { bus.core as bus; sys.time; sys.math; }
+  PARAMS { cost_per_token:f64=0.00001, default_tokens:u32=200, merit_multiplier:f64=1.0 }
+  ENTRY ingest(span) {
+    if (!span) { return }
+    let tks = CALL estimate_tokens(span.content)
+    let delta_s = (span.quality ?? 0.0) * (tks as f64) * merit_multiplier
+    let warnings = []
+    if ((span.quality ?? 0.0) < 0.5) { warnings.push("low_quality") }
+    if ((span.type ?? "generic") == "llm" && tks > 2048) { warnings.push("llm_tokens_may_exceed") }
+    let result = {
+      span_id: span.span_id,
+      estimated_tokens: tks,
+      delta_s: delta_s,
+      warnings: warnings,
+      decision: (delta_s > 10.0) ? "approve" : "warn",
+      ts_ms: sys.time.now_ms()
+    }
+    bus.publish("simulate.result", result)
+  }
+  FUNC estimate_tokens(content)->u32 {
+    if (!content) return default_tokens
+    let s = sys.crypto.hash(content) // cheap proxy; not real length
+    // Use last byte as pseudo-length seed to keep deterministic but simple
+    return (default_tokens + (s.bytes[-1] % 150)) as u32
+  }
+}

@@ -1,0 +1,59 @@
+// contracts/core/circle.lll
+contract "circle" {
+  version: "1.0"
+  description: "Entidade computável Circle: agrupamento lógico de identidades para permissão contextual"
+  author: "LogLineOS Identity Core"
+
+  schema: {
+    circle_id: String,
+    name: String,
+    created_at: Timestamp,
+    created_by: LogLineID,
+    members: [LogLineID],
+    permissions: [String],
+    metadata: Json
+  }
+
+  function create(input) {
+    require input.circle_id != null
+    require input.name != null
+    entry := {
+      circle_id: input.circle_id,
+      name: input.name,
+      created_at: now(),
+      created_by: actor(),
+      members: input.members || [],
+      permissions: input.permissions || [],
+      metadata: input.metadata || {}
+    }
+    emit "circle_created" entry
+    return entry
+  }
+
+  function add_member(input) {
+    require input.circle_id != null
+    require input.member_id != null
+    emit "circle_member_added" { circle_id: input.circle_id, member_id: input.member_id, ts: now() }
+    return { ok: true }
+  }
+
+  function remove_member(input) {
+    require input.circle_id != null
+    require input.member_id != null
+    emit "circle_member_removed" { circle_id: input.circle_id, member_id: input.member_id, ts: now() }
+    return { ok: true }
+  }
+
+  function set_permissions(input) {
+    require input.circle_id != null
+    require input.permissions != null
+    emit "circle_permissions_updated" { circle_id: input.circle_id, permissions: input.permissions, ts: now() }
+    return { ok: true }
+  }
+
+  workflow "select_active_circle" {
+    input: { logline_id: LogLineID, circle_id: String }
+    emit "active_circle_selected" { logline_id: input.logline_id, circle_id: input.circle_id, ts: now() }
+    return { ok: true }
+  }
+}

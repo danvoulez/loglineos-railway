@@ -1,0 +1,27 @@
+/*
+    Description: O script que constrói o universo LogLine.
+*/
+
+// Carrega as capacidades de baixo nível.
+LOAD_PLUGIN("plugins/syscalls/target/wasm32-unknown-unknown/release/syscalls.wasm")
+LOAD_PLUGIN("plugins/db/target/wasm32-unknown-unknown/release/db.wasm")
+
+// Carrega as gramáticas que definem a linguagem de domínio.
+LOAD_GRAMMAR("grammar/domains/core.v1.pest", "core.v1")
+LOAD_GRAMMAR("grammar/domains/pessoas.v1.pest", "pessoas.v1")
+LOAD_GRAMMAR("grammar/domains/contratos.v1.pest", "contratos.v1")
+
+// Define os tipos fundamentais.
+DEF_STRUCT String {}
+DEF_STRUCT Event { kind: String, payload: String }
+DEF_STRUCT Registry {} // Agora é apenas um namespace conceitual.
+
+// Define as funções de sistema que interagem com os plugins.
+DEF_FN System::print(msg: String) { CALL syscalls::print(msg) }
+DEF_FN DB::insert(table: String, key: String, value: String) { CALL db::insert(table, key, value) }
+DEF_FN DB::get(table: String, key: String) -> String { RETURN CALL db::get(table, key) }
+
+// Inicia o sistema.
+RUN("system/clock.lll")
+RUN("system/watcher.lll")
+RUN("scripts/main.lll")

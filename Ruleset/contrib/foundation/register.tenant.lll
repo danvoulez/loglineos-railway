@@ -1,0 +1,13 @@
+contract_template: register.tenant
+description: Registra um novo tenant (instituição ou app)
+flow_id: tenant_creation
+header:
+  template_id: register.tenant
+  author: sys_admin
+  tenant_id: system
+payload:
+  tenant_id: voulezvous
+  display_name: VoulezVous Systems
+  metadata:
+    created_by: dan
+    creation_date: 2025-08-29

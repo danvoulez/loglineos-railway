@@ -1,0 +1,9 @@
+package "sdk.providers.rate_limit" version "0.1.0"
+requires capability ["policy.rate_limit","kv"]
+
+policy RATE {
+  on http.request(path_template=?p)
+  when not allowed(p)
+  do effect emit_decision { action:"http.reject", args:{ status:"429" } }
+}
+fn allowed(p: Text) -> Bool { intrinsic "ratelimit.allowed" }

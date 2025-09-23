@@ -1,0 +1,44 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 3 · AUTOSCALER  —  “Respiração da Máquina”
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT coord.autoscaler {
+  PARAMS { ewma_alpha:f64=0.25, cool_down_ms:u32=15000, base_max_workers:u32=64 }
+  STATE  { ewma_depth:map<string,f64>, ewma_lat:map<string,f64>, last_scale:map<string,u64> }
+  IMPORTS { bus.core as bus; workerd.pool as pool; sys.time; sys.math }
+  FUNC targets_for(orbit)->{q:u32, lat:f64} {
+    if (orbit=="hot")  return { q:400,  lat:0.80 };
+    if (orbit=="warm") return { q:800,  lat:1.30 };
+    return { q:1600, lat:2.10 };
+  }
+  FUNC max_for(orbit)->u32 { if (orbit=="hot") return base_max_workers; if (orbit=="warm") return base_max_workers/2; return base_max_workers/4; }
+  ENTRY loop {
+    LOOP L {
+      let ts_now = sys.time.now_ms()
+      for orbit in ["hot","warm","cold"] {
+        let d_cur = bus.depth("orbit."+orbit)
+        let d_old = ewma_depth[orbit]??(d_cur as f64)
+        ewma_depth[orbit] = (1.0-ewma_alpha)*d_old + ewma_alpha*(d_cur as f64)
+        let lat_sample = bus.peek("metrics.latency."+orbit)
+        if (lat_sample) {
+          let l_cur = lat_sample.p99 ?? 0.0
+          let l_old = ewma_lat[orbit]??l_cur
+          ewma_lat[orbit] = (1.0-ewma_alpha)*l_old + ewma_alpha*l_cur
+        }
+        let target  = CALL targets_for(orbit)
+        let depth_ratio = (ewma_depth[orbit]/(target.q as f64))
+        let lat_ratio   = (ewma_lat[orbit]/target.lat)
+        let score = 0.55*depth_ratio + 0.45*lat_ratio
+        let cur = pool.size(orbit)
+        let desired = cur
+        if (score > 1.10) { desired = cur + sys.math.max(1, cur/4) }
+        else if (score < 0.80 && cur > 1) { desired = cur - 1 }
+        desired = sys.math.clamp(desired, 1, CALL max_for(orbit))
+        let last = last_scale[orbit]??0
+        if (ts_now - last < cool_down_ms) { desired = cur }
+        if (desired != cur) { pool.scale_orbit(orbit, desired); last_scale[orbit] = ts_now }
+        bus.publish("metrics.autoscaler", { orbit:orbit, depth_ewma:ewma_depth[orbit], lat_ewma:ewma_lat[orbit], score:score, workers:desired, ts_ms:ts_now })
+      }
+      SLEEP 2_000
+    }
+  }
+}

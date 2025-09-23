@@ -1,0 +1,10 @@
+span {
+  type: "ghost_login"
+  span_id: "{{uuid}}"
+  handle: "@ghost_394x"
+  internal_id: "logline-id://ghost-394x"
+  created_at: "{{timestamp}}"
+  provenance: "onboarding"
+  agent: "logline-id://ghost-394x"
+  expiration: "{{timestamp + 48h}}"
+}

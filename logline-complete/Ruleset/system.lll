@@ -1,0 +1,18 @@
+contract ruleset.system {
+  id: "logline://ruleset/system"
+  workflow: "rules"
+  flow: "os"
+  description: "Regras superiores: tempo/gramática como enforcement; precedência global"
+
+  meta {
+    precedence: ["system","app","tenant","user"]
+    time_enforcement: "all contracts must declare ts/validity"
+    grammar: "all `.lll` conform to EBNF and be signed by LogLine ID"
+  }
+
+  api {
+    fn validate(contract: bytes) -> receipt {}
+    fn enforce_time(contract_id: string, now: datetime) -> bool {}
+    fn inherit(app_rules: ref, tenant_rules: ref, user_rules: ref) -> receipt {}
+  }
+}

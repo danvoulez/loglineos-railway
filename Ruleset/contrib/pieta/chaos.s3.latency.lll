@@ -1,0 +1,6 @@
+policy chaos.s3.latency@u1.0 {
+  when chaos.trigger == "s3_latency" {
+    chaos.invoke name:"s3_latency" params:{ p95_ms:1200, duration:"10m" }
+    receipt issue reason:"chaos-s3-latency"
+  }
+}

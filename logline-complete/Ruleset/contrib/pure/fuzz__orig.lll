@@ -1,0 +1,2 @@
+package "sdk.tests.fuzz" version "0.1.0"
+fuzz "vm_stack_safety" { budget: 60s, corpus: "spans://vm/handlers" }

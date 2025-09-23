@@ -1,0 +1,11 @@
+CONTRACT enzyme.replay {
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY replay(trace_id) {
+    let history = []; let now = sys.time.now_ms()
+    for span in history {
+      let replayed = span; replayed.replay_ts = now; replayed.replayed_by = "enzyme.replay"
+      bus.publish("admitted.spans", replayed)
+    }
+    bus.publish("enzyme.confirm", { action:"replay", trace_id, count:history.len(), ts_ms: now })
+  }
+}

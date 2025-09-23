@@ -1,0 +1,7 @@
+CONTRACT chaos.net.partition {
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY inject(msg) {
+    // msg: { duration_ms }
+    bus.publish("chaos.event", { type:"net.partition", start: sys.time.now_ms(), duration_ms: msg?.duration_ms ?? 60000 })
+  }
+}

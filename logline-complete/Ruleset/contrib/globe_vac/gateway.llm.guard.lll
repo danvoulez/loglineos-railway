@@ -1,0 +1,6 @@
+CONTRACT gateway.llm.guard {
+  IMPORTS { sys.vault }
+  ENTRY can_use(uid)->bool { return sys.vault.get("user_consent", uid) == true }
+  ENTRY grant(uid) { sys.vault.set("user_consent", uid, true) }
+  ENTRY revoke(uid) { sys.vault.set("user_consent", uid, false) }
+}

@@ -1,0 +1,65 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 4 · ORCHESTRATOR  —  “Maestro 4-Fases”
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT motor.orchestrator {
+  PARAMS { period_ms:u64=12000, phase_guard:f64=0.22, slos:{ eta:f64=0.80, hbv:f64=0.09, r99_factor:f64=2.2 }, nudge_amp:f64=0.06 }
+  STATE  { engines:map<string,{role:string,enabled:bool}>, beat:u64=0, top_override:{ active:bool, ttl:u32 } }
+  IMPORTS { sys.time; bus.core as bus; sys.vault; sys.math }
+  FUNC metric_eta () -> f64 { return sys.vault.metric("eta")  ?? 1.0 }
+  FUNC metric_hbv () -> f64 { return sys.vault.metric("hbv")  ?? 0.0 }
+  FUNC metric_r99() -> u64 { return (sys.vault.metric("release_p99_ms") as u64) ?? 0 }
+  FUNC roles_for(top) -> list<string> {
+    if (top=="dual")     return ["plus","minus"]
+    if (top=="solo")     return ["plus"]
+    if (top=="triangle") return ["plus","enzyme","minus"]
+    return ["plus","simulate","enzyme","minus"]
+  }
+  FUNC phases_for(top) -> list<f64> {
+    if (top=="dual")     return [0.0,0.5]
+    if (top=="solo")     return [0.0]
+    if (top=="triangle") return [0.0,1.0/3.0,2.0/3.0]
+    return [0.0,0.25,0.50,0.75]
+  }
+  FUNC nudge(role)->{da:f64,dg:f64} {
+    if (role=="plus")   return { da:+nudge_amp   , dg:-nudge_amp/2.0 }
+    if (role=="minus")  return { da:-nudge_amp/3 , dg:+nudge_amp     }
+    if (role=="enzyme") return { da:+nudge_amp/4 , dg:0.0            }
+    return { da:0.0, dg:0.0 }
+  }
+  ENTRY register_engine(id,role){ engines[id] = { role, enabled:true } }
+  ENTRY loop {
+    LOOP L {
+      let topo = top_override.active ? "dual" : "globe"
+      let roles  = CALL roles_for(topo)
+      let phases = CALL phases_for(topo)
+      let period = period_ms
+      let η   = CALL metric_eta(); let hbv = CALL metric_hbv(); let r99 = CALL metric_r99()
+      let danger = (η < slos.eta) || (hbv > slos.hbv) || (r99 > (slos.r99_factor * period as f64))
+      if (danger) { bus.publish("slo.violation", { η, hbv, r99, ts:sys.time.now_ms() }); top_override = { active:true, ttl:3 } }
+      else if (top_override.active && top_override.ttl>0) { top_override.ttl -= 1 }
+      else { top_override = { active:false, ttl:0 } }
+      let window = (period as f64) / (roles.len() as f64)
+      if (window < phase_guard * (period as f64)) { period = (period * 115) / 100 }
+      let cycle_start = sys.time.now_ms()
+      for i in 0 .. roles.len()-1 {
+        let role = roles[i]
+        for (id, meta) in engines {
+          if (!meta.enabled || meta.role != role) { continue }
+          bus.publish("control.window", { id, role, open:true, orbit:(role=="plus"?"hot":role=="enzyme"?"warm":"cold") })
+          let v = CALL nudge(role)
+          if (v.da != 0.0) { sys.vault.nudge("alpha", v.da, ttl="1-tick") }
+          if (v.dg != 0.0) { sys.vault.nudge("gamma", v.dg, ttl="1-tick") }
+          let phase_start = (phases[i]*(period as f64)) as u64
+          let elapsed = sys.time.now_ms() - cycle_start
+          if (phase_start > elapsed) { SLEEP (phase_start - elapsed) }
+          bus.publish("control.window", { id, role, open:false })
+          if (danger) { SLEEP (period/10) }
+        }
+      }
+      beat += 1
+      bus.publish("metrics.orchestrator", { beat, topo, period_ms:period, η, hbv, r99, ts:sys.time.now_ms() })
+      let total = sys.time.now_ms() - cycle_start
+      if (total < period) { SLEEP (period - total) }
+    }
+  }
+}

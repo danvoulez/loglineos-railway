@@ -1,0 +1,9 @@
+contract ruleset.tenant {
+  workflow: "rules"
+  flow: "tenant"
+  description: "Regras do tenant; herda de app/system"
+
+  meta { inherits: ["ruleset.system","ruleset.app"] }
+
+  api { fn validate_tenant(contract: bytes) -> receipt {} }
+}

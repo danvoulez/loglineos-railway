@@ -1,0 +1,6 @@
+policy evidence.pack@u1.0 {
+  when day.end {
+    aggregate receipts by action window:"1d"
+    receipt issue reason:"evidence-pack-produced"
+  }
+}

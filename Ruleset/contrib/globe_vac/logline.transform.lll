@@ -1,0 +1,58 @@
+CONTRACT logline.transform {
+  IMPORTS { bus.core as bus; sys.time; sys.crypto; }
+  PARAMS { min_quality:f64=0.40 }
+  ENTRY ingest(span_raw) {
+    // Expect span_raw: { type, content, metadata }
+    if (!span_raw) { return }
+    let now_ms = sys.time.now_ms()
+    let span_id = sys.crypto.uuid_v4()
+    let trace_id = span_raw.metadata?.trace_id ?? sys.crypto.uuid_v4()
+    let wflow = span_raw.metadata?.workflow ?? CALL infer_workflow(span_raw.type)
+    let flow  = span_raw.metadata?.flow ?? CALL infer_flow(span_raw)
+    let templ = span_raw.metadata?.template_id ?? CALL infer_template(span_raw)
+    let content = CALL expand_templates(span_raw.content ?? {})
+    let q = CALL compute_quality(span_raw)
+    let out = {
+      span_id: span_id,
+      trace_id: trace_id,
+      type: span_raw.type ?? "generic",
+      workflow: wflow ?? "geral",
+      flow: flow ?? "desconhecido",
+      template_id: templ ?? null,
+      content: content,
+      quality: q,
+      transformed_at_ms: now_ms,
+      provenance: {
+        source: "logline.transform",
+        signer: "SYSTEM_ID",
+        original_hash: sys.crypto.hash(span_raw)
+      }
+    }
+    bus.publish("transformed.spans", out)
+    // Optional: fast-fail spans de baixíssima qualidade
+    if (q < min_quality) {
+      bus.publish("quarantine.spans", { reason:"low_quality", span: out })
+    }
+  }
+  FUNC infer_workflow(t)->string { if (t=="banking") return "banking"; return "geral"; }
+  FUNC infer_flow(span)->string {
+    if (span?.metadata?.flow) return span.metadata.flow
+    if (span?.type=="banking") return "banking"
+    if (span?.type=="llm") return "llm"
+    return "desconhecido"
+  }
+  FUNC infer_template(span)->string {
+    if (span?.metadata?.template_id) return span.metadata.template_id
+    return "generic.template.v1"
+  }
+  FUNC expand_templates(obj)->map<string,any> { return obj } // no-op placeholder
+  FUNC compute_quality(span)->f64 {
+    // Heurística simples: campos presentes + tamanho do conteúdo
+    let base = 0.5
+    let bonus = 0.0
+    if (span?.content) { bonus += 0.2 }
+    if (span?.metadata) { bonus += 0.1 }
+    if (span?.type) { bonus += 0.1 }
+    return sys.math.clamp(base + bonus, 0.0, 1.0)
+  }
+}

@@ -1,0 +1,17 @@
+/*
+    Description: A lógica do Watcher Engine, escrita em .lll.
+*/
+
+// O Watcher reage a eventos de Tick do Clock.
+DEF_FN Watcher::on_tick(event: Event) {
+    IF event.kind == "Tick" {
+        CALL System::print("Watcher: Tick recebido. Verificando pares entrelaçados...")
+        // 1. Lê o datatrack (usando DB::get)
+        // 2. Procura por STARTs sem ENDs.
+        // 3. Verifica se os prazos (`until`) foram ultrapassados.
+        // 4. Se um prazo foi ultrapassado, dispara o handler `if_not`.
+        //    LET start_event = ...
+        //    CALL start_event.if_not
+        // 5. Se um END correspondente for encontrado, dispara o handler `if_ok`.
+    }
+}

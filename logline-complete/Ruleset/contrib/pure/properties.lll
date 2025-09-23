@@ -1,0 +1,11 @@
+package "sdk.tests.properties" version "0.1.0"
+import "sdk.ir.lir_spec"
+
+property "timeouts_consistent" {
+  given gen.server()
+  expect gen.current.idle_timeout_ms >= gen.current.keep_alive_ms
+}
+property "sse_has_heartbeat" {
+  given gen.operation(kind=SSE)
+  expect gen.current.handler.0.heartbeat_ms > 0
+}

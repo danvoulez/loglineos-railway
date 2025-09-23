@@ -1,0 +1,71 @@
+[build]
+builder = "nixpacks"
+buildCommand = "chmod +x bin/* && npm install"
+
+[deploy]
+numReplicas = 1
+sleepApplication = false
+restartPolicyType = "always"
+
+[[services]]
+name = "logline-gateway"
+source = "."
+domains = ["${{RAILWAY_PUBLIC_DOMAIN}}"]
+
+[services.logline-gateway.build]
+builder = "nixpacks"
+buildCommand = "npm install && chmod +x bin/logline_gateway.js"
+startCommand = "node bin/logline_gateway.js"
+
+[services.logline-gateway.deploy]
+numReplicas = 1
+memoryGB = 1
+cpuLimit = 1000
+
+[services.logline-gateway.variables]
+NODE_ENV = "production"
+LOGLINE_MODE = "unified"
+LOGLINE_API_KEY = "${{LOGLINE_API_KEY}}"
+DATABASE_URL = "${{DATABASE_URL}}"
+
+[[services]]
+name = "logline-postgres"
+source = "postgresql"
+
+[services.logline-postgres.deploy]
+numReplicas = 1
+memoryGB = 2
+cpuLimit = 1000
+
+[[services]]
+name = "logline-motor"
+source = "bin"
+buildCommand = "cargo build --release --bin logline_motor"
+startCommand = "./target/release/logline_motor"
+
+[services.logline-motor.deploy]
+numReplicas = 1
+memoryGB = 512
+cpuLimit = 500
+
+[[services]]
+name = "registry-create"
+source = "bin"
+buildCommand = "cargo build --release --bin registry_create"
+startCommand = "./target/release/registry_create"
+
+[services.registry-create.deploy]
+numReplicas = 1
+memoryGB = 256
+cpuLimit = 250
+
+[[services]]
+name = "bootstrap-farm"
+source = "bin"
+buildCommand = "cargo build --release --bin bootstrap_farm"
+startCommand = "./target/release/bootstrap_farm"
+
+[services.bootstrap-farm.deploy]
+numReplicas = 1
+memoryGB = 256
+cpuLimit = 250

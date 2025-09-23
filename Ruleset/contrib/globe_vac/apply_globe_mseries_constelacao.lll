@@ -1,0 +1,29 @@
++++ b/policy/apply_globe_mseries_constelacao.lll
+@@
+   INIT bus.core.create([
+    "intake.spans","transformed.spans","admitted.spans","quarantine.spans",
+    "orbit.hot","orbit.warm","orbit.cold","simulate.result","receipt.issued",
+    "intake.backpressure","dlq.queue","dlq.final","pipeline.declared","federation.heartbeat"
+   ])
+@@
+   ATTACH coord.admission     to star {}
+   ATTACH coord.autoscaler    to star {}
+   ATTACH motor.orchestrator  to star {}
+  ATTACH logline.transform   to star {}
+  ATTACH simulate.engine     to star {}
+  ATTACH intake.monitor      to star {}
+  ATTACH dlq.handler         to star {}
+  ATTACH dlq.policy          to star {}
+  ATTACH enzyme.replay_policy to star {}
+  ATTACH verify.signature    to star {}
+  ATTACH orchestrator.selfcheck to star {}
+  ATTACH pipeline.declare    to star {}
+  ATTACH api.receipt_lookup  to star {}
+  ATTACH vault.trust_decay   to star {}
+  ATTACH vault.injunction    to star {}
+  ATTACH consent.contract    to star {}
+  ATTACH federation.status   to star {}
+@@
+   INIT maestro.register_engine("worker_plus","plus")
+  INIT maestro.register_engine("engine.enzyme","enzyme")
+  INIT maestro.register_engine("simulate.engine","simulate")

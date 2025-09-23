@@ -1,0 +1,47 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 2 · ADMISSION  —  “Valete do Portão”
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT coord.admission {
+  PARAMS {
+    rps_target      : u32  = 2_500
+    base_qmin       : f64  = 0.25
+    target_depth    : u32  = 1_200
+    kp              : f64  = 0.12
+    ki              : f64  = 0.04
+    kd              : f64  = 0.08
+    ewma_alpha      : f64  = 0.20
+    metric_period_ms: u32  = 2_000
+  }
+  STATE { tokens:f64=0.0, last_ms:u64=0, integral:f64=0.0, last_error:f64=0.0, ewma_rps:f64=0.0, last_metric:u64=0 }
+  IMPORTS { sys.time; sys.math; bus.core as bus; bus.dedupe as ddup }
+  FUNC flush_metrics(depth,u64 now_ms) {
+    if (now - last_metric < metric_period_ms) { return; }
+    last_metric = now;
+    bus.publish("metrics.admission", { depth:depth, ewma_rps:ewma_rps, q_min_dyn:base_qmin, tokens:tokens, ts_ms:now });
+  }
+  ENTRY loop {
+    let burst = (rps_target as f64) * 2.0
+    LOOP L {
+      let now = sys.time.now_ms()
+      if (last_ms == 0) { last_ms = now }
+      let dt = ((now - last_ms) as f64) / 1000.0
+      tokens = sys.math.min(tokens + dt * (rps_target as f64), burst)
+      let inst_rps = 1.0 / sys.math.max(dt, 1e-3)
+      ewma_rps = (1.0 - ewma_alpha)*ewma_rps + ewma_alpha*inst_rps
+      let msg = bus.peek("intake.spans")
+      if (!msg) { flush_metrics(0, now); SLEEP 2; last_ms = now; JUMP L }
+      if (ddup.seen_before(msg.id)) { bus.ack("intake.spans", msg.id); last_ms = now; JUMP L }
+      let depth      = bus.depth("intake.spans")
+      let error      = (depth as f64) - (target_depth as f64)
+      integral      += error * dt
+      let derivative = (error - last_error) / dt
+      let pid_out    = kp*error + ki*integral + kd*derivative
+      last_error     = error
+      let q_min_dyn  = sys.math.clamp(base_qmin + pid_out*1e-4 , 0.10 , 0.90)
+      let span_q     = msg.span.quality ?? 0.0
+      if (span_q < q_min_dyn) { bus.publish("quarantine.spans", msg); bus.ack("intake.spans", msg.id) }
+      else if (tokens >= 1.0) { tokens -= 1.0; ddup.mark(msg.id); bus.ack("intake.spans", msg.id); bus.publish("admitted.spans", msg) }
+      CALL flush_metrics(depth, now); last_ms = now
+    }
+  }
+}

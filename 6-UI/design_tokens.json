@@ -1,0 +1,22 @@
+{
+  "colors": {
+    "brandA": "#7B61FF",
+    "brandB": "#00D4FF",
+    "brandC": "#FF36C7",
+    "ink": "#0C0D0E",
+    "muted": "#6B7280",
+    "bg": "#0B0C10",
+    "surface": "#12151B",
+    "line": "rgba(255,255,255,0.08)"
+  },
+  "radii": {
+    "pill": "999px",
+    "card": "20px"
+  },
+  "shadows": {
+    "elev1": "0 4px 20px rgba(0,0,0,0.35)"
+  },
+  "fonts": {
+    "ui": "Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+  }
+}

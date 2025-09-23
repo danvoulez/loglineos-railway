@@ -1,0 +1,9 @@
+package "sdk.compiler.parser" version "0.1.0"
+import "sdk.compiler.lexer","sdk.ir.lir_spec","sdk.std.string","sdk.std.map","sdk.std.list"
+
+parser parse_module(input: Bytes) -> Module {
+  let toks = lex(input)
+  let items = parse_items(toks)
+  return Module { id: "unknown", version: "0.1.0", items }
+}
+fn parse_items(toks: List<Token>) -> List<Item> { intrinsic "parser.items" }

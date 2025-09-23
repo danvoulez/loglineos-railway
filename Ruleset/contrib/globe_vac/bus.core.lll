@@ -1,0 +1,75 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 1 · BUS CORE  —  “Pulso Mensageiro”
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT bus.core {
+  PARAMS {
+    retention_s     : u64 = 86_400
+    max_inflight    : u32 = 16_384
+    metric_interval : u32 = 2_000
+    checkpoint_every: u32 = 5_000
+  }
+
+  STATE {
+    topics : map<string,{ subs:set<string>, depth:u32, head:u64 }>
+    last_flush_ms : u64 = 0
+    last_checkpoint : map<string,u64>
+  }
+
+  IMPORTS { sys.fs; sys.hash; sys.time; bus.dedupe as ddup }
+
+  FUNC topic_path(t) -> string { return "/var/log/logline/bus_"+t+".ndjson"; }
+
+  FUNC record_metrics() {
+    let now = sys.time.now_ms();
+    if (now - last_flush_ms < metric_interval) { return; }
+    last_flush_ms = now;
+    for (t, meta) in topics {
+      bus.publish("metrics.bus", { topic:t, depth:meta.depth, head:meta.head, subs:len(meta.subs), ts_ms:now });
+    }
+  }
+
+  FUNC maybe_checkpoint(t) {
+    let cnt = last_checkpoint[t]??0;
+    if (cnt < checkpoint_every) { last_checkpoint[t]=cnt+1; return; }
+    let path = CALL topic_path(t);
+    sys.fs.move_tail_to(path, path+".bak", retain=topics[t].depth);
+    last_checkpoint[t]=0;
+  }
+
+  ENTRY create(topic) { topics[topic] = { subs:set(), depth:0, head:0 }; }
+
+  ENTRY publish(topic, msg) {
+    let id = msg.id ?? sys.hash.blake3(msg);
+    msg.id        = id;
+    msg.trace_ts  = sys.time.now_ms();
+    msg.trace_id  = msg.trace_id ?? sys.hash.blake3(id+msg.trace_ts);
+    msg.span_id   = sys.hash.blake3(id+topic);
+
+    WRITE ndjson CALL topic_path(topic) msg;
+    topics[topic].depth += 1;
+
+    ddup.mark(id);
+    EMIT bus.pub { topic, id, depth: topics[topic].depth };
+    CALL record_metrics();
+  }
+
+  ENTRY next(topic) -> m {
+    let rec = READ ndjson CALL topic_path(topic) tail=true;
+    if (rec != null) { topics[topic].head += 1; }
+    CALL record_metrics();
+    return rec;
+  }
+
+  ENTRY peek(topic) -> m {
+    let rec = READ ndjson CALL topic_path(topic) tail=true;
+    CALL record_metrics();
+    return rec;
+  }
+
+  ENTRY ack(topic, id) {
+    if (topics[topic].depth > 0) { topics[topic].depth -= 1; }
+    CALL maybe_checkpoint(topic);
+  }
+
+  ENTRY depth(topic) -> u32 { return topics[topic].depth ?? 0; }
+}

@@ -1,0 +1,2 @@
+package "sdk.tests.replay" version "0.1.0"
+replay "universal_smoke" { source: "spans://ub_server/requests", window: "1h" }

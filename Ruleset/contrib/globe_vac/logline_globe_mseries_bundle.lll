@@ -1,0 +1,17 @@
+# Bundle entrypoint shim
+# Use: logline policy apply logline_globe_mseries_bundle.lll:policy.apply_globe_mseries_constelacao
+
+INCLUDE "contracts/transform/logline.transform.lll"
+INCLUDE "contracts/simulate/simulate.engine.lll"
+INCLUDE "contracts/intake/intake.monitor.lll"
+INCLUDE "contracts/dlq/dlq.handler.lll"
+INCLUDE "contracts/dlq/dlq.policy.lll"
+INCLUDE "contracts/enzyme/enzyme.replay_policy.lll"
+INCLUDE "contracts/ledger/verify.signature.lll"
+INCLUDE "contracts/orchestrator/orchestrator.selfcheck.lll"
+INCLUDE "contracts/pipeline/pipeline.declare.lll"
+INCLUDE "contracts/api/api.receipt_lookup.lll"
+INCLUDE "contracts/vault/vault.trust_decay.lll"
+INCLUDE "contracts/vault/vault.injunction.lll"
+INCLUDE "contracts/consent/consent.contract.lll"
+INCLUDE "contracts/federation/federation.status.lll"

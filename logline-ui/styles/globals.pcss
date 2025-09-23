@@ -1,0 +1,72 @@
+
+/* Global Neon Noir variables */
+:root {
+  --background: #0a0a0a;
+  --surface: #1a1a1a;
+  --text-primary: #e0e0e0;
+  --text-secondary: #9a9a9a;
+  --border: #333333;
+
+  --neon-green: #00FFAA;
+  --neon-blue:  #00C8FF;
+  --neon-purple:#C400FF;
+  --neon-pink:  #FF29FF;
+  --neon-yellow:#FFD600;
+
+  --font-family: 'Space Grotesk', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+  --radius: 14px;
+  --transition: all .22s ease-in-out;
+  --focus-ring: 0 0 0 3px rgba(0,255,170,.25);
+  --neon-glow: 0 0 10px rgba(0,255,170,.75);
+}
+
+html, body, #__next {
+  height: 100%;
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+}
+
+/* Base resets */
+* { box-sizing: border-box; }
+
+/* Neon helpers */
+.neon-border { border: 2px solid var(--neon-green); box-shadow: var(--neon-glow); }
+.neon-border--purple { border-color: var(--neon-purple); box-shadow: 0 0 10px rgba(196,0,255,.75) }
+.neon-border--pink { border-color: var(--neon-pink); box-shadow: 0 0 10px rgba(255,41,255,.75) }
+.neon-border--blue { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0,200,255,.75) }
+.rounded { border-radius: var(--radius); }
+
+.glass-surface {
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(6px);
+}
+
+/* Minimal utility classes to support existing markup */
+.bg-black { background: #000; }
+.bg-surface { background: var(--surface); }
+.text-neonGreen { color: var(--neon-green); }
+.text-neonBlue { color: var(--neon-blue); }
+.text-neonPink { color: var(--neon-pink); }
+.text-neonPurple { color: var(--neon-purple); }
+.text-secondary { color: var(--text-secondary); }
+.border-neonGreen { border-color: var(--neon-green) !important; }
+.border-neonPink { border-color: var(--neon-pink) !important; }
+.border-neonPurple { border-color: var(--neon-purple) !important; }
+.border { border: 1px solid var(--border); }
+.container { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+/* Focus ring */
+:where(button, input, textarea, a):focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Pulsing glow */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 8px rgba(0,255,170,.25); }
+  50% { box-shadow: 0 0 20px rgba(0,255,170,.85); }
+  100% { box-shadow: 0 0 8px rgba(0,255,170,.25); }
+}

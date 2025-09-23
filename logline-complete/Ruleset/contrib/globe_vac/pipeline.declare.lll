@@ -1,0 +1,12 @@
+CONTRACT pipeline.declare {
+  IMPORTS { bus.core as bus }
+  STATE { pipelines:map<string,map<string,any>> }
+  ENTRY declare(cfg) {
+    // cfg: { pipeline_id, input_topic, steps[], mode, enabled }
+    if (!cfg?.pipeline_id) return
+    pipelines[cfg.pipeline_id] = cfg
+    bus.publish("pipeline.declared", cfg)
+  }
+  ENTRY enable(p) { if (pipelines[p]) { pipelines[p].enabled = true;  bus.publish("pipeline.enabled", { id:p }) } }
+  ENTRY disable(p){ if (pipelines[p]) { pipelines[p].enabled = false; bus.publish("pipeline.disabled",{ id:p }) } }
+}

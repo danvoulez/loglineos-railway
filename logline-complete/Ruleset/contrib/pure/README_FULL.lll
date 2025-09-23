@@ -1,0 +1,68 @@
+contract {
+  meta {
+    id: "doc:readme_full:ab30d4bb"
+    app: "LOG_LINE_ENTERPRISE_PRODUCT_KIT"
+    version: "1.0.0"
+    created_at: "2025-09-15T07:48:57Z"
+    tenant_id: "*"
+    flow: "document"
+    workflow: "geral"
+    tags: ["estratégia", "document"]
+  }
+      payload {
+        text: """
+# LogLine SDK — **COMPLETO** em `.lll` (metacircular, sem SaaS)
+
+Este bundle entrega:
+- **Core/Std/IR/Compiler/VM** em `.lll`
+- **Providers internos** (HTTP2, CORS, Rate Limit, KV, Queue, Scheduler, Notify, Text+Vector Search)
+- **Telemetry Engine + SLO Engine** (substitui Prometheus/Jaeger)
+- **Addons**: Flags, A/B Elo, Auth PASETO, Flow Engine (CI), On-call Rotation
+- **Sample**: `sdk/samples/universal_backend.lll` — o “backend universal” 100% declarativo
+- **Tests**: propriedades, fuzz, replay, segurança e flags
+
+## Boot do Loader S-0
+Implemente intrinsics/actions citados nos `.lll`:
+- `str.*`, `list.*`, `map.*`
+- `lexer.run`, `parser.items`, `desugar.items`, `type.*`, `lint.*`, `codegen.*`
+- VM: `vm.push`, `vm.pop`, `vm.popn.make_map`, `vm.map.to_text`
+- Telemetry: `telemetry.append_metric|append_span|compact|query|label_normalize|map_text`
+- HTTP: `http.current.metrics`, `http.respond`, `sse.yield`
+- SLO: `slo.persist`, `slo.evaluate_all`
+- Addons: `flags.choose`, `ab.hash_pick`, `auth.validate`, `oncall.current`, `flow.persist`, `flow.tick`
+- Storage/Infra: `kv.*`, `wal.*`, `schedule.*`, `smtp.send`, `webpush.send`, `tls.enable` (se usar TLS)
+
+## Rodando o Sample
+1. Carregue `sdk/samples/universal_backend.lll`
+2. Endpoints:
+   - Básicos: `/health`, `/echo`, `/add`, `/stream/time`
+   - Telemetry: `/telemetry/q`, `/telemetry/stream`, `/ui/telemetry`, `/telemetry/slo`
+   - Auth/Flags/AB: `/auth/mint`, `/flags/{name}`, `/exp/{name}/assign`
+   - Search: `/_search/text`, `/_search/vector`
+3. Deployment: `run_universal_backend`
+
+## Por que isso substitui “SaaS alienígena”
+- **Telemetria unificada** (métricas+spans+SLO) → uma linguagem, um storage, sem egress.
+- **Decisões operacionais** (flags, A/B, on-call) **como políticas** `.lll` auditáveis por spans.
+- **CI/flow** como contrato `.lll` (executa local, on-prem ou cluster).
+- **Auth** com PASETO e chaves sob seu domínio.
+
+## Qualidade e gates
+- `sdk/tests/properties.lll` — invariantes do servidor e SSE
+- `sdk/tests/fuzz.lll` — fuzz da VM/bytecode
+- `sdk/tests/replay.lll` — replay por spans
+- `sdk/tests/security.lll` — auth 401 sem token
+- `sdk/tests/flags.lll` — determinismo de flags
+
+> Dica: comece pelo shadow-mode do universal backend, habilite Telemetry+SLO, e ligue Flags/A/B em um endpoint crítico.
+
+        """
+      }
+run [
+  "emit.document.index",
+  "persist.contract",
+  "emit.receipt"
+]
+  federate { allow: true }
+  sign { by: "logline-id://dan", algo: "ed25519", sig: "PENDING" }
+}

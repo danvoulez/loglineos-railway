@@ -1,0 +1,20 @@
+# rules.rfid.lll - Ativação computável de identidade via RFID
+
+rfid_rule {
+  required_fields: ["rfid_serial", "activation_span"]
+  allowed_status: ["ativo"]
+  onboarding_span: "rfid_onboarding"
+  revocation: {
+    on_expired: true,
+    on_request: true,
+    on_mismatch: true
+  }
+  audit: {
+    require_span: true,
+    log_action: "revocation"
+  }
+  error_handling: {
+    on_missing_fields: "reject"
+    on_inactive_status: "reject"
+  }
+}

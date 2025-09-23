@@ -1,0 +1,5 @@
+package "sdk.providers.scheduler" version "0.1.0"
+requires capability ["scheduler","kv"]
+
+policy SCHED_REGISTER { on schedule.create(id=?id, spec=?spec) do effect emit_decision { action:"schedule.persist", args:{ id:id, spec:spec } } }
+automaton SCHED_RUN { state Tick; on_tick Tick every 1000 do effect emit_decision { action:"schedule.tick" } }

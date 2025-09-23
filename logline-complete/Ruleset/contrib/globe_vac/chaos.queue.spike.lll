@@ -1,0 +1,6 @@
+CONTRACT chaos.queue.spike {
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY inject(msg) {
+    bus.publish("chaos.event", { type:"queue.spike", start: sys.time.now_ms(), factor: msg?.factor ?? 3.0 })
+  }
+}

@@ -1,0 +1,16 @@
+CONTRACT intake.monitor {
+  IMPORTS { bus.core as bus; sys.time; }
+  PARAMS { depth_critical:u32=5000, backpressure_topic:string="intake.backpressure", http_signal:bool=true }
+  ENTRY loop {
+    LOOP L {
+      let d = bus.depth("intake.spans")
+      let level = (d >= depth_critical) ? "critical" : ((d >= depth_critical/2) ? "high" : "normal")
+      bus.publish("metrics.intake", { depth:d, level:level, ts_ms:sys.time.now_ms() })
+      if (level != "normal") {
+        bus.publish(backpressure_topic, { level:level, depth:d })
+        if (http_signal) { bus.publish("intake.http.signal", { status:429, reason:"TooManySpans", depth:d }) }
+      }
+      SLEEP 2_000
+    }
+  }
+}

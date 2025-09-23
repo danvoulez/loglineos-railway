@@ -1,0 +1,8 @@
+package "sdk.compiler.desugar" version "0.1.0"
+import "sdk.ir.lir_spec","sdk.std.map","sdk.std.list"
+
+transform desugar(m: Module) -> Module {
+  let canon_items = normalize_items(m.items)
+  return Module { id: m.id, version: m.version, items: canon_items }
+}
+fn normalize_items(items: List<Item]) -> List<Item] { intrinsic "desugar.items" }

@@ -1,0 +1,12 @@
+package "sdk.providers.flow_engine" version "0.1.0"
+requires capability ["flow.engine","scheduler","kv","notify"]
+
+# Execução simples de pipeline declarativo.
+policy FLOW_REGISTER { on flow.create(name=?n, spec=?s) do effect emit_decision { action:"flow.persist", args:{ name:n, spec:s } } }
+automaton FLOW_TICK { state Tick; on_tick Tick every 5000 do effect emit_decision { action:"flow.tick" } }
+
+operation "flow_run" {
+  method: POST, path: "/flow/{name}/run", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__flow_run__") })
+}
+model "Json" { fields:[ {name:"json", ty:"Text!", required:true} ] }

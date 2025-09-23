@@ -1,0 +1,6 @@
+package "sdk.core.types" version "0.1.0"
+
+type Int; type Float; type Bool; type Text; type Bytes
+type Time; type Duration
+
+generic Id<T>; generic List<T>; generic Map<K,V>; generic Option<T>; generic Result<Ok,Err>

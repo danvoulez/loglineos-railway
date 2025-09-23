@@ -1,0 +1,8 @@
+package "sdk.providers.search_text" version "0.1.0"
+requires capability ["search.text","kv","net.http.server"]
+
+policy INDEX_PUT { on index.put(index=?idx, id=?id, doc=?doc)
+  do effect emit_decision { action:"index_text.upsert", args:{ index:idx, id:id, doc:doc } } }
+operation "index_search" { method: GET, path: "/_search/text", response: RespStatusModel(200,"Json"),
+  handler: Return({ "json": LitText("__search_text__") }) }
+model "Json" { fields:[ {name:"json", ty:"Text!", required:true} ] }

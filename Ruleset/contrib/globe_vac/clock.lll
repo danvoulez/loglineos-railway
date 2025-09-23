@@ -1,0 +1,11 @@
+/*
+    Description: Lógica do Clock do sistema, responsável por emitir ticks.
+*/
+
+DEF_FN Clock::start() {
+    LOOP {
+        LET event = Event { kind: "Tick", payload: {} }
+        CALL Watcher::on_tick(event)
+        WAIT(1000) // Espera 1 segundo entre os ticks
+    }
+}

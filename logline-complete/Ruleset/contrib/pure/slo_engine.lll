@@ -1,0 +1,24 @@
+package "sdk.providers.slo_engine" version "0.1.0"
+requires capability ["slo.engine","telemetry.query","notify"]
+
+policy SLO_REGISTER {
+  on slo.define(name=?n, objective=?obj, selector=?sel)
+  do effect emit_decision { action:"slo.persist", args:{ name:n, objective:obj, selector:sel } }
+}
+
+automaton SLO_EVAL {
+  state Tick
+  on_tick Tick every 60000 do effect emit_decision { action:"slo.evaluate_all", args:{} }
+}
+
+policy SLO_ALERT {
+  on slo.burn_rate(name=?n, short=?s, long=?l, threshold=?th)
+  when (s > th) and (l > th/2)
+  do effect emit_decision { action:"notify.send", args:{ channel:"log.notify", text: concat("SLO em risco: ", n) } }
+}
+
+operation "slo_list" {
+  method: GET, path: "/telemetry/slo", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__slo_list__") })
+}
+model "Json" { fields:[ {name:"json", ty:"Text!", required:true} ] }

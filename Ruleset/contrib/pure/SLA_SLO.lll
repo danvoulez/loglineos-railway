@@ -1,0 +1,25 @@
+contract {
+  meta {
+    id: "doc:sla_slo:b482be70"
+    app: "LOG_LINE_ENTERPRISE_PRODUCT_KIT"
+    version: "1.0.0"
+    created_at: "2025-09-15T07:48:57Z"
+    tenant_id: "*"
+    flow: "document"
+    workflow: "geral"
+    tags: ["sla", "document"]
+  }
+      payload {
+        text: """
+SLO 99.9%
+
+        """
+      }
+run [
+  "emit.document.index",
+  "persist.contract",
+  "emit.receipt"
+]
+  federate { allow: true }
+  sign { by: "logline-id://dan", algo: "ed25519", sig: "PENDING" }
+}

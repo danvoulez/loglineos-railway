@@ -1,0 +1,18 @@
+package "sdk.compiler.grammar" version "0.1.0"
+
+token WS    = /\s+/
+token IDENT = /[A-Za-z_][A-Za-z0-9_]*/
+token INT   = /[0-9]+/
+token TEXT  = /"([^"\\]|\\.)*"/
+token LBR   = /\{/
+token RBR   = /\}/
+token COL   = /:/
+token COM   = /,/
+token ARR   = /\[/
+token ARR_END = /\]/
+token ARW   = /->/
+
+rule PACKAGE := "package" WS TEXT WS "version" WS TEXT
+rule SERVER  := "server" WS TEXT WS LBR ... RBR
+rule MODEL   := "model"  WS TEXT WS LBR ... RBR
+rule OP      := "operation" WS TEXT WS LBR ... RBR

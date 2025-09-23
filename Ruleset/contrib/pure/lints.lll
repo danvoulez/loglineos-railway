@@ -1,0 +1,5 @@
+package "sdk.compiler.lints" version "0.1.0"
+import "sdk.ir.lir_spec"
+
+lint sse_requires_heartbeat(m: Module) -> Bool { return intrinsic "lint.sse.heartbeat" }
+lint timeouts_consistent(m: Module) -> Bool { return intrinsic "lint.timeouts" }

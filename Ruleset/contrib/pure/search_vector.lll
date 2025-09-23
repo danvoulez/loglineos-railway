@@ -1,0 +1,11 @@
+package "sdk.providers.search_vector" version "0.1.0"
+requires capability ["search.vector","kv","net.http.server"]
+
+policy VEC_UPSERT {
+  on vector.upsert(index=?idx, id=?id, vec=?v) do effect emit_decision {
+    action:"vector.upsert", args:{ index:idx, id:id, vec: encode_vec(v) } }
+}
+operation "index_search_vector" { method: GET, path: "/_search/vector", response: RespStatusModel(200,"Json"),
+  handler: Return({ "json": LitText("__search_vector__") }) }
+fn encode_vec(v: Text) -> Text { intrinsic "vector.encode" }
+model "Json" { fields:[ {name:"json", ty:"Text!", required:true} ] }

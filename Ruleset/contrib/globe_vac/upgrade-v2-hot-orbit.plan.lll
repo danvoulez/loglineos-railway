@@ -1,0 +1,32 @@
+    # upgrade-v2-hot-orbit.plan.lll
+    # Schema: plan@1
+    {
+  "plan_id": "upgrade-v2-hot-orbit",
+  "type": "engine.deploy",
+  "intent": "critical",
+  "engine_spec": {
+    "engine_id": "logline.transformer",
+    "version": "\u0394S\u207a-1.0.0",
+    "capabilities": [
+      "simulate.oracle.quick",
+      "enzyme.enrich",
+      "score.compute"
+    ]
+  },
+  "payload": {
+    "note": "Activate LogLine Transformer as motor \u0394S\u207a replacing worker_hot."
+  },
+  "constraints": {
+    "max_latency_ms": 30000,
+    "max_budget_eur": 0,
+    "max_cvar95": 0.35
+  },
+  "ts_submitted": "2025-09-16T01:33:13.510622Z",
+  "tenant_id": "voulezvous",
+  "operator": "dan@logline.world",
+  "tags": [
+    "upgrade",
+    "orbit.hot",
+    "\u0394S\u207a"
+  ]
+}

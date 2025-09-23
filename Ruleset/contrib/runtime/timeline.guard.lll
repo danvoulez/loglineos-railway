@@ -1,0 +1,9 @@
+CONTRACT enzyme.guard {
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY on_new_span(span) {
+    if (span.trace_id == null) { return }
+    if (span.span_id == "s09") {
+      bus.publish("enzyme.alert", { reason:"span_revertido_tentou_reexecutar", span_id:span.span_id, ts_ms:sys.time.now_ms() })
+    }
+  }
+}

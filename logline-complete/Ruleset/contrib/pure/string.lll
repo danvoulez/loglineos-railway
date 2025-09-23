@@ -1,0 +1,9 @@
+package "sdk.std.string" version "0.1.0"
+
+fn ends_with(s: Text, suf: Text) -> Bool { intrinsic "str.ends_with" }
+fn slice(s: Text, from: Int, to: Int) -> Text { intrinsic "str.slice" }
+fn len(s: Text) -> Int { intrinsic "str.len" }
+fn to_text(i: Int) -> Text { intrinsic "str.from_int" }
+fn starts_with(s: Text, pfx: Text) -> Bool { intrinsic "str.starts_with" }
+fn concat(a: Text, b: Text) -> Text { intrinsic "str.concat" }
+fn eq(a: Text, b: Text) -> Bool { intrinsic "str.eq" }

@@ -1,0 +1,6 @@
+policy ai_act@eu {
+  when model.risk_level == "high" and tenant.region == "EU" {
+    require human_review role:"risk_officer"
+    receipt issue reason:"ai-act-human-review"
+  }
+}

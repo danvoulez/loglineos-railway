@@ -1,0 +1,54 @@
+version: 1
+layout:
+  engine: Engine/
+  interfaces: API/
+  policies: Engine/policies/
+post_install:
+  - ATTACH Ruleset/system.lll as rules to star {}
+  - ATTACH Engine/policies/boot/merkle.lll as policy.merkle to star {}
+  - ATTACH Engine/policies/boot/observer_wiring.lll as policy.observer to star {}
+  # --- Optional pure policies (enable selectively) ---
+  # - ATTACH Ruleset/contrib/pure/cors.lll as policy.pure.cors to star {}
+  # - ATTACH Ruleset/contrib/pure/rate_limit.lll as policy.pure.rate_limit to star {}
+  # - ATTACH Ruleset/contrib/pure/telemetry_engine.lll as policy.pure.telemetry_engine to star {}
+  # - ATTACH Ruleset/contrib/pure/slo_engine.lll as policy.pure.slo_engine to star {}
+  # - ATTACH Ruleset/contrib/pure/ab_elo.lll as policy.pure.ab_elo to star {}
+  # - ATTACH Ruleset/contrib/pure/flags_core.lll as policy.pure.flags_core to star {}
+  # - ATTACH Ruleset/contrib/pure/auth_paseto.lll as policy.pure.auth_paseto to star {}
+  # - ATTACH Ruleset/contrib/pure/flow_engine.lll as policy.pure.flow_engine to star {}
+  # - ATTACH Ruleset/contrib/pure/oncall_core.lll as policy.pure.oncall_core to star {}
+  # - ATTACH Ruleset/contrib/pure/kv.lll as policy.pure.kv to star {}
+  # - ATTACH Ruleset/contrib/pure/queue.lll as policy.pure.queue to star {}
+  # - ATTACH Ruleset/contrib/pure/scheduler.lll as policy.pure.scheduler to star {}
+  # - ATTACH Ruleset/contrib/pure/search_text.lll as policy.pure.search_text to star {}
+  # - ATTACH Ruleset/contrib/pure/search_vector.lll as policy.pure.search_vector to star {}
+  # - ATTACH Ruleset/contrib/pure/notify_local.lll as policy.pure.notify_local to star {}
+  # - ATTACH Ruleset/contrib/pure/cors__orig.lll as policy.pure.cors__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/rate_limit__orig.lll as policy.pure.rate_limit__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/telemetry_engine__orig.lll as policy.pure.telemetry_engine__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/slo_engine__orig.lll as policy.pure.slo_engine__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/ab_elo__orig.lll as policy.pure.ab_elo__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/flags_core__orig.lll as policy.pure.flags_core__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/auth_paseto__orig.lll as policy.pure.auth_paseto__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/flow_engine__orig.lll as policy.pure.flow_engine__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/oncall_core__orig.lll as policy.pure.oncall_core__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/kv__orig.lll as policy.pure.kv__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/scheduler__orig.lll as policy.pure.scheduler__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/search_text__orig.lll as policy.pure.search_text__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/search_vector__orig.lll as policy.pure.search_vector__orig to star {}
+  # - ATTACH Ruleset/contrib/pure/notify_local__orig.lll as policy.pure.notify_local__orig to star {}
+  # --- Optional runtime policies (enable selectively) ---
+  # - ATTACH Ruleset/contrib/runtime/apply_globe_mseries_constelacao.lll as policy.runtime.apply_globe_mseries_constelacao to star {}
+  # --- Optional PIETA policies ---
+  # - ATTACH Ruleset/contrib/pieta/observer@u1.1.lll as policy.pieta.observer@u1.1 to star {}
+  # - ATTACH Ruleset/contrib/pieta/bus.lll as policy.pieta.bus to star {}
+  # - ATTACH Ruleset/contrib/pieta/vault.lll as policy.pieta.vault to star {}
+  # - ATTACH Ruleset/contrib/pieta/budget.guard.lll as policy.pieta.budget.guard to star {}
+  # - ATTACH Ruleset/contrib/pieta/chaos.queue.spike.lll as policy.pieta.chaos.queue.spike to star {}
+  # - ATTACH Ruleset/contrib/pieta/chaos.s3.latency.lll as policy.pieta.chaos.s3.latency to star {}
+  # - ATTACH Ruleset/contrib/pieta/migration.lll as policy.pieta.migration to star {}
+  # - ATTACH Ruleset/contrib/pieta/evidence.pack.lll as policy.pieta.evidence.pack to star {}
+  # - ATTACH Ruleset/contrib/pieta/gdpr.lll as policy.pieta.gdpr to star {}
+  # - ATTACH Ruleset/contrib/pieta/ai_act.lll as policy.pieta.ai_act to star {}
+  # - ATTACH Ruleset/contrib/pieta/region_pin.lll as policy.pieta.region_pin to star {}
+  # --- Optional Globe/VAC policies ---

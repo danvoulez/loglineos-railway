@@ -1,0 +1,4 @@
+package "sdk.core.time" version "0.1.0"
+
+extern now_ms() -> Int
+extern sleep_ms(ms: Int) -> Unit

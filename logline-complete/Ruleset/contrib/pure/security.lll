@@ -1,0 +1,6 @@
+package "sdk.tests.security" version "0.1.0"
+
+property "auth_rejects_without_token" {
+  given gen.http_request(path="/private")
+  expect guard.auth(valid=false) == "401"
+}

@@ -1,0 +1,5 @@
+contract federation.bootstrap@v1 {
+  input { tenant_id: String, peers: [String]?, mode: String? = "mesh" }
+  try { step out = imported.federacao_bootstrap.start@v1 { tenant_id: input.tenant_id, peers: input.peers?, mode: input.mode? }; return out }
+  catch { return { ok: false, error: "federation.import.missing" } }
+}

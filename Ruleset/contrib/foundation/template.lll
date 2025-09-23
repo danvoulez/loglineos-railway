@@ -1,0 +1,6 @@
+{
+  "type": "contract",
+  "engine": "isa",
+  "input_policy": "policy.llasm",
+  "input_facts": "facts.json"
+}

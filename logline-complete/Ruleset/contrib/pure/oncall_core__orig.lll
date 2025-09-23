@@ -1,0 +1,9 @@
+package "sdk.providers.oncall_core" version "0.1.0"
+requires capability ["oncall.core","scheduler","notify","kv"]
+
+policy INCIDENT {
+  on slo.burn_rate(name=?n, short=?s, long=?l, threshold=?th)
+  do effect emit_decision { action:"notify.send", args:{ channel: oncall_now(), text: concat("SLO: ", n) } }
+}
+automaton ROTATION { state Tick; on_tick Tick every 60000 do effect emit_decision { action:"oncall.rotate" } }
+fn oncall_now() -> Text { intrinsic "oncall.current" }

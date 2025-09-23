@@ -1,0 +1,6 @@
+policy chaos.queue.spike@u1.0 {
+  when chaos.trigger == "queue_spike" {
+    chaos.invoke name:"queue_spike" params:{ target:"orders", magnitude:500, duration:"5m" }
+    receipt issue reason:"chaos-queue-spike"
+  }
+}

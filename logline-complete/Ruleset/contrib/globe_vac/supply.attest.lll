@@ -1,0 +1,9 @@
+CONTRACT supply.attest {
+  IMPORTS { bus.core as bus; sys.crypto; sys.time }
+  ENTRY emit(att) {
+    // att: { artifact_id, sbom_hash, build_id, builder, provenance }
+    att.ts_ms = sys.time.now_ms()
+    att.signature = sys.crypto.hash(att)
+    bus.publish("supply.attested", att)
+  }
+}

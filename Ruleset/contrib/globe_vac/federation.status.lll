@@ -1,0 +1,20 @@
+CONTRACT federation.status {
+  IMPORTS { bus.core as bus; sys.time }
+  PARAMS { node_id:string="node://default", interval_ms:u32=10_000 }
+  ENTRY loop {
+    LOOP L {
+      let m = bus.peek("metrics.orchestrator") ?? { η:0.0, hbv:0.0, r99:0.0 }
+      let sync = bus.peek("logline.sync.confirm") ?? null
+      bus.publish("federation.heartbeat", {
+        node_id: node_id,
+        status: "online",
+        η: m.η ?? 0.0,
+        HBV: m.hbv ?? 0.0,
+        R99: m.r99 ?? 0.0,
+        last_sync: sync?.ts ?? null,
+        ts_ms: sys.time.now_ms()
+      })
+      SLEEP interval_ms
+    }
+  }
+}

@@ -1,0 +1,95 @@
+PROTEIN "large_protein_complex"
+NAME "optimized_large_simulation"
+
+# Domain definitions for hierarchical folding
+DOMAIN alpha_domain_1 {
+    residues: 1-80
+    type: alpha_helix
+    pipeline: "alpha_folding"
+    depends_on: []
+}
+
+DOMAIN beta_domain_1 {
+    residues: 81-160
+    type: beta_sheet
+    pipeline: "beta_folding"
+    depends_on: []
+}
+
+DOMAIN loop_connector {
+    residues: 161-180
+    type: loop
+    pipeline: "loop_optimization"
+    depends_on: ["alpha_domain_1", "beta_domain_1"]
+}
+
+# Main hierarchical pipeline
+PIPELINE large_protein_folding {
+    mode: PARALLEL(4)
+
+    # Parallel domain folding
+    RUN_PIPELINE("alpha_folding")
+    RUN_PIPELINE("beta_folding")
+
+    # Sequential assembly after domains are stable
+    STAGE domain_assembly {
+        kernel: dock_domains
+        input domain_a: protein
+        input domain_b: protein
+        output assembled: protein
+        param interface_weight: 0.8
+        param geometric_tolerance: 1.5
+    }
+
+    # Hierarchical watchers
+    WATCHER domain_stability_monitor {
+        level: domain
+        trigger: energy_stable("alpha_domain_1", 0.05)
+        trigger: energy_stable("beta_domain_1", 0.05)
+        action: activate_watcher("assembly_monitor")
+    }
+
+    WATCHER assembly_monitor {
+        level: quaternary
+        trigger: domain_formed("loop_connector", 0.9)
+        action: trigger_docking
+    }
+
+    WATCHER quantum_oracle_activator {
+        level: global
+        trigger: rmsd_converged("global", 0.1)
+        action: quantum_tunnel
+    }
+}
+
+# Optimized force calculation stages
+STAGE equilibration {
+    kernel: lj_coulomb
+    input positions: positions
+    output forces: vector3
+    param temperature: 300.0
+    param timestep: 0.001
+    param optimization_level: "aggressive"
+    domain: "alpha_domain_1"
+}
+
+STAGE production {
+    kernel: lj_coulomb
+    input positions: positions
+    output forces: vector3
+    param temperature: 310.0
+    param timestep: 0.0005
+    param use_simd: true
+    param parallel_threshold: 50
+    domain: "beta_domain_1"
+}
+
+STAGE quantum_enhancement {
+    kernel: quantum_tunnel
+    input positions: positions
+    input energy: float
+    output new_positions: positions
+    param oracle_type: "macro_domain_oracle"
+    param confidence_threshold: 0.7
+    param tunnel_probability: 0.3
+}

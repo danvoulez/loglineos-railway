@@ -1,0 +1,4 @@
+CONTRACT vault.score {
+  IMPORTS { vault.operator as vault }
+  ENTRY trust_score(user) -> f64 { let m = vault.balance(user); return m / 100.0 }
+}

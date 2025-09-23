@@ -1,0 +1,27 @@
+import "policy/motor/budget.guard.lll"
+import "policy/motor/vault.lll"
+
+policy observer@u1.1 {
+  shadow = true
+
+  when queue("orders").backlog > 200
+       and latency.p95 > 1500ms
+       within duration("3m") {
+    suggest scale service:"orders-worker" +1
+    receipt issue reason:"backpressure-suggestion" witnesses:["logline-id://auditor"]
+  }
+
+  when sla("first_response") breached
+       and order.value_eur < 25 {
+    act refund provider:"stripe" amount:"full"
+    receipt issue reason:"sla-refund-micro" witnesses:["logline-id://auditor"]
+  }
+
+  when eval.score(model:"reply-bot") < 0.7
+       within duration("30m")
+       and cost_spike > 0.2 {
+    act route model:"safe-model"
+    notify role:"mlops"
+    receipt issue reason:"llm-quality-guard" witnesses:["logline-id://auditor"]
+  }
+}

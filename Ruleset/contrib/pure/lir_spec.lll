@@ -1,0 +1,40 @@
+package "sdk.ir.lir_spec" version "0.1.0"
+
+record Module { id: Text, version: Text, items: List<Item> }
+sum Item = Server(Server) | Security(Security) | ConnectionPolicy(ConnectionPolicy)
+         | Model(Model) | Operation(Operation) | Deployment(Deployment)
+         | Policy(Policy) | Provider(Provider)
+
+record Server {
+  id: Text, protocol: Text,
+  bind_host: Text, bind_port: Int,
+  worker_threads: Int, max_connections: Int,
+  keep_alive_ms: Int, idle_timeout_ms: Int,
+  tcp_nodelay: Bool, tcp_backlog: Int,
+  description: Text
+}
+
+record Security { id: Text, cors: CORS? }
+record CORS { allow_origins: List<Text>, allow_methods: List<Text>, allow_headers: List<Text>, max_age_sec: Int }
+record ConnectionPolicy { id: Text, scope: Text, algorithm: Text, max_requests: Int, window_ms: Int, burst: Int? }
+
+record Model { id: Text, fields: List<Field> }
+record Field { name: Text, ty: Text, required: Bool }
+
+sum OpKind = NORMAL | SSE
+record SSESpec { interval_ms: Int, heartbeat_ms: Int, retry_ms: Int }
+sum Handler = Return(Map<Text,Expr>) | Stream(SSESpec, Map<Text,Expr>)
+
+sum ResponseSpec = RespModel(Text) | RespStatusModel(Int, Text) | RespSSE
+
+record Operation {
+  id: Text, method: Text, path: Text,
+  request: Option<Text>, response: Option<ResponseSpec>,
+  kind: OpKind, handler: Handler
+}
+
+record Deployment { id: Text, steps: List<Text>, auto_reload: Bool }
+record Policy { id: Text }
+record Provider { id: Text }
+
+sum Expr = LitInt(Int) | LitText(Text) | Add(Expr,Expr) | NowMs | Field(Text)

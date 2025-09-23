@@ -1,0 +1,8 @@
+CONTRACT lineage.emit {
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY record(ev) {
+    // ev: { from_topic, to_topic, span_id }
+    ev.ts_ms = sys.time.now_ms()
+    bus.publish("data.lineage", ev)
+  }
+}

@@ -1,0 +1,14 @@
+contract {
+  version: "1.0"
+  id: "agent.configure"
+  workflow: "agent"
+  flow: "configure"
+  tags: ["agent","configure","stub"]
+  payload { note: "Carrega contratos agent/*" }
+  exec { run: ["registry.lookup"] }
+  signature { required: true signer: "logline-id://owner" }
+  federation { visibility: "public" allow: ["*"] }
+  provenance { source: <<'TEXT'
+stub.added
+TEXT>> migrated_at: "2025-09-15T08:25:40Z" }
+}

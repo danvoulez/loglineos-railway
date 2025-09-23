@@ -1,0 +1,9 @@
+package "sdk.providers.cors" version "0.1.0"
+requires capability ["policy.cors"]
+
+policy CORS {
+  on http.request(method=?m, origin=?o)
+  when allowed_origin(o)
+  do effect emit_decision { action:"http.header", args:{ "Access-Control-Allow-Origin": o } }
+}
+fn allowed_origin(o: Text) -> Bool { intrinsic "cors.allowed" }

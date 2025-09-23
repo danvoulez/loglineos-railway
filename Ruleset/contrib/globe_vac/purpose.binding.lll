@@ -1,0 +1,9 @@
+CONTRACT purpose.binding {
+  IMPORTS { bus.core as bus }
+  STATE { bindings:map<string, list<string>> } // pipeline_id -> purposes[]
+  ENTRY bind(cfg) {
+    // cfg: { pipeline_id, purposes[] }
+    bindings[cfg.pipeline_id] = cfg.purposes ?? []
+    bus.publish("purpose.bound", cfg)
+  }
+}

@@ -1,0 +1,41 @@
+# Documento de Identidade Computável LogLine
+## Dan Amarilho (@danvoulez)
+
+**LogLine ID**: `logline-id://dan.amarilho`  
+**Tipo de Entidade**: `person`  
+**Data de Criação**: 2025-09-23T15:30:00Z  
+
+### Informações Pessoais
+- **Nome**: Dan Amarilho
+- **Email**: dan@danvoulez.com  
+- **Nível de Confiança**: Alto
+- **Avatar**: logline://blob/dan_avatar_001
+
+### Permissões Computáveis
+- ✅ Criar contratos
+- ✅ Gerenciar identidade própria
+- ✅ Executar spans
+- ✅ Acessar timeline pessoal
+- ✅ Interagir com agentes LLM
+
+### Métodos de Autenticação
+1. **Passkey** (primário)
+2. **Biometria facial** (secundário)
+3. **RFID** (físico)
+
+### Hash Biométrico
+```
+sha256:abc123def456789...
+```
+
+### Proveniência
+- **Origem**: Auto-registro
+- **IP**: 192.168.1.100
+- **User Agent**: LogLine-UI/1.0.0
+- **Timestamp**: 2025-09-23T15:30:00Z
+
+---
+
+**Este documento é computável e auditável via LogLine Registry**
+
+*Assinado digitalmente por: logline-id://dan.amarilho*

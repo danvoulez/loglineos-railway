@@ -1,0 +1,14 @@
+package "sdk.providers.auth_paseto" version "0.1.0"
+requires capability ["auth.core","crypto.seal","kv"]
+
+operation "token_mint" {
+  method:"POST", path:"/auth/mint", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__paseto_mint__") })
+}
+policy AUTH_GUARD {
+  on http.request(path=?p, headers=?h)
+  when not valid(h)
+  do effect emit_decision { action:"http.reject", args:{ status:"401" } }
+}
+fn valid(h: Text) -> Bool { intrinsic "auth.validate" }
+model "Json" { fields:[ {name:"json", ty:"Text!", required:true} ] }

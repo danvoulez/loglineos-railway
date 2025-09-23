@@ -1,0 +1,12 @@
+package "sdk.compiler.typecheck" version "0.1.0"
+import "sdk.ir.lir_spec"
+
+record TypeError { msg: Text }
+
+check module_types(m: Module) -> Result<Module,TypeError> {
+  if not check_models(m) then return Err(TypeError { msg: "invalid models" })
+  if not check_operations(m) then return Err(TypeError { msg: "invalid operations" })
+  return Ok(m)
+}
+fn check_models(m: Module) -> Bool { intrinsic "type.models" }
+fn check_operations(m: Module) -> Bool { intrinsic "type.operations" }

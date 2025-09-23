@@ -1,0 +1,48 @@
+package "sdk.providers.telemetry_engine" version "0.1.0"
+requires capability ["telemetry.core","telemetry.query","net.http.server"]
+
+policy METRIC_INGEST {
+  on metric.observe(name=?n, labels=?l, value=?v)
+  do effect emit_decision { action:"telemetry.append_metric",
+    args:{ name:n, labels: label_normalize(l), value: to_text(v) } }
+}
+
+policy SPAN_START {
+  on span.start(trace_id=?t, span_id=?s, name=?nm, attrs=?a, ts=?ts)
+  do effect emit_decision { action:"telemetry.append_span",
+    args:{ ev:"start", trace_id:t, span_id:s, name:nm, ts:ts, attrs: map_text(a) } }
+}
+
+policy SPAN_END {
+  on span.end(trace_id=?t, span_id=?s, ts=?ts, status=?st)
+  do effect emit_decision { action:"telemetry.append_span",
+    args:{ ev:"end", trace_id:t, span_id:s, ts:ts, status:st } }
+}
+
+automaton TELEMETRY_COMPACTOR {
+  state Tick
+  on_tick Tick every 10000 do effect emit_decision { action:"telemetry.compact", args:{} }
+}
+
+operation "telemetry_query" {
+  method: GET, path: "/telemetry/q", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__telemetry_query__") })
+}
+
+operation "telemetry_stream" {
+  method: GET, path: "/telemetry/stream", response: RespSSE, kind: SSE,
+  handler: Stream(SSESpec { interval_ms:1000, heartbeat_ms:15000, retry_ms:3000 },
+                  { "delta": LitText("__telemetry_tick__") })
+}
+
+operation "telemetry_ui" {
+  method: GET, path: "/ui/telemetry", response: RespStatusModel(200,"HtmlPage"), kind: NORMAL,
+  handler: Return({ "html": LitText("<!doctype html><h1>Telemetry</h1>") })
+}
+
+model "Json" { fields:[ {name:"json", ty:"Text!", required:true} ] }
+model "HtmlPage"  { fields:[ {name:"html", ty:"Text!", required:true} ] }
+
+fn map_text(m: Map<Text,Text>) -> Text { intrinsic "telemetry.map_text" }
+fn label_normalize(m: Map<Text,Text>) -> Text { intrinsic "telemetry.label_normalize" }
+fn to_text(i: Int) -> Text { intrinsic "str.from_int" }

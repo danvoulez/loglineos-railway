@@ -1,0 +1,12 @@
+package "sdk.providers.notify_local" version "0.1.0"
+requires capability ["notify"]
+
+policy NOTIFY {
+  on notify.send(channel=?ch, text=?tx)
+  do effect emit_decision { action: route(ch), args:{ text: tx } }
+}
+fn route(ch: Text) -> Text {
+  if starts_with(ch,"mailto:") then "smtp.send"
+  else if starts_with(ch,"webpush:") then "webpush.send"
+  else "log.notify"
+}

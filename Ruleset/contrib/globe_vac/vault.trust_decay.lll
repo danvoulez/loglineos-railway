@@ -1,0 +1,30 @@
+CONTRACT vault.trust_decay {
+  IMPORTS { bus.core as bus; sys.time }
+  PARAMS { decay_per_day:f64=0.02, min_balance:f64=0.0 }
+  STATE  { last_positive:map<string,u64>, balance:map<string,f64> }
+  ENTRY on_receipt(rec) {
+    // Assume rec has user_id and delta_s
+    let uid = rec?.user_id ?? null
+    if (!uid) return
+    if ((rec?.delta_s ?? 0.0) > 0.0) {
+      last_positive[uid] = sys.time.now_ms()
+      balance[uid] = (balance[uid] ?? 0.0) + rec.delta_s
+      bus.publish("vault.balance.update", { user_id:uid, balance:balance[uid] })
+    }
+  }
+  ENTRY loop {
+    LOOP L {
+      let now = sys.time.now_ms()
+      for uid in keys(balance) {
+        let last = last_positive[uid] ?? now
+        let days = ((now - last) / (1000*60*60*24)) as f64
+        if (days >= 1.0) {
+          let dec = balance[uid] * (decay_per_day * days)
+          balance[uid] = sys.math.max(min_balance, balance[uid] - dec)
+          bus.publish("vault.decay.applied", { user_id:uid, decayed:dec, balance:balance[uid] })
+        }
+      }
+      SLEEP 86_400_000 // daily
+    }
+  }
+}

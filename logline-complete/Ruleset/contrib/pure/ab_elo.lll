@@ -1,0 +1,17 @@
+package "sdk.providers.ab_elo" version "0.1.0"
+requires capability ["ab.elo","kv","notify"]
+
+policy ASSIGN {
+  on experiment.assign(name=?n, id=?eid, key=?k, variants=?vs)
+  do effect emit_decision { action:"ab.assign", args:{ name:n, id:eid, variant: hash_pick(k,vs) } }
+}
+policy JUDGE {
+  on experiment.judge(name=?n, a=?a, b=?b, winner=?w)
+  do effect emit_decision { action:"elo.update", args:{ name:n, a:a, b:b, winner:w } }
+}
+operation "ab_assign_http" {
+  method: GET, path: "/exp/{name}/assign", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__exp_assign__") })
+}
+model "Json" { fields:[ {name:"json", ty:"Text!", required:true} ] }
+fn hash_pick(k: Text, vs: Text) -> Text { intrinsic "ab.hash_pick" }

@@ -1,52 +1,36 @@
-# LogLineOS Railway Deployment
-FROM ubuntu:22.04
+# LogLine Complete System Railway Deployment
+FROM python:3.11-slim
 
-# Evitar prompts interativos durante instalação
+# Environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
+ENV DATA_DIR=/data
+ENV PORT=3000
 
-# Atualizar sistema e instalar dependências
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
-    wget \
-    git \
-    build-essential \
-    python3 \
-    python3-pip \
-    nodejs \
-    npm \
-    sqlite3 \
-    ca-certificates \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Criar diretório de trabalho
+# Set working directory
 WORKDIR /app
 
-# Copiar binário LogLine (vamos baixar uma versão compatível ou compilar)
-# Por enquanto, vamos usar um placeholder para o binário
-RUN mkdir -p /usr/local/bin
+# Copy and install Python dependencies
+COPY API/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar arquivos de configuração e scripts
-COPY package.json package-lock.json* ./
-COPY requirements.txt* ./
-
-# Instalar dependências Python se existirem
-RUN if [ -f requirements.txt ]; then pip3 install --no-cache-dir -r requirements.txt; fi
-
-# Instalar dependências Node.js se existirem
-RUN if [ -f package.json ]; then npm install; fi
-
-# Copiar código da aplicação
+# Copy application code
 COPY . .
 
-# Criar diretório para dados do LogLineOS
-RUN mkdir -p /app/data /app/contracts /app/logs
+# Create necessary directories
+RUN mkdir -p /data/logs /data/pg
 
-# Expor porta principal (Railway usa PORT)
-EXPOSE 3000
+# Make scripts executable
+RUN chmod +x run.sh Timeline/db/start.sh Timeline/db/initdb.sh
 
-# Tornar scripts executáveis
-RUN chmod +x /app/start.sh /app/scripts/*.sh
+# Expose port
+EXPOSE $PORT
 
-# Comando padrão
-CMD ["/app/start.sh"]
+# Start the LogLine API (PostgreSQL will be external Railway service)
+CMD ["python3", "-m", "uvicorn", "API.main:app", "--host", "0.0.0.0", "--port", "3000"]

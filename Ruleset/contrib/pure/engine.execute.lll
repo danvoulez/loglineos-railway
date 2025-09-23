@@ -1,0 +1,14 @@
+contract {
+  version: "1.0"
+  id: "engine.execute"
+  workflow: "engine"
+  flow: "execute"
+  tags: ["engine","execute","connector"]
+  payload { note: "validate → handle" }
+  exec { run: ["engine.validate","engine.handle"] }
+  signature { required: true signer: "logline-id://owner" }
+  federation { visibility: "public" allow: ["*"] }
+  provenance { source: <<'TEXT'
+connector.added
+TEXT>> migrated_at: "2025-09-15T08:25:40Z" }
+}

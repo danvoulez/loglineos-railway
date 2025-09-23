@@ -1,0 +1,7 @@
+CONTRACT dsar.contract {
+  IMPORTS { bus.core as bus }
+  ENTRY request(r) {
+    // r: { user_id, action: "access|erase", scope }
+    bus.publish("dsar.requested", r)
+  }
+}

@@ -1,0 +1,8 @@
+CONTRACT logline.sync.sqlite {
+  IMPORTS { sys.sqlite; bus.core as bus }
+  INIT db = sys.sqlite.open("logline.db")
+  ENTRY ingest(entry) {
+    db.exec("INSERT INTO ledger (id, ts, json) VALUES (?, ?, ?)", [ entry.id, entry.ts_ms, sys.serialize(entry) ])
+    bus.publish("logline.sync.confirm", { target:"sqlite", id:entry.id, ts_ms:entry.ts_ms })
+  }
+}

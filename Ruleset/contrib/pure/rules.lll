@@ -1,0 +1,11 @@
+rule FeedbackValido(fb) -> bool {{
+  return fb.referencia != null && len(fb.sugestao ?? "") > 10
+}}
+
+rule PropostaClara(p) -> bool {{
+  return p.objetivo != null && p.impacto_estimado >= 1.0
+}}
+
+rule DesacordoConstrutivo(expr) -> bool {{
+  return expr.tipo == "discordancia" && expr.sem_ataque_pessoal == true
+}}

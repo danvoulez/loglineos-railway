@@ -1,0 +1,5 @@
+contract os.core@v1 {
+  input { op: String, args: Json? }
+  try { step out = imported.logline_os.exec@v1 { op: input.op, args: input.args? }; return out }
+  catch { return { ok: false, error: "logline_os.import.missing" } }
+}

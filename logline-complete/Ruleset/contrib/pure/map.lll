@@ -1,0 +1,6 @@
+package "sdk.std.map" version "0.1.0"
+
+fn get<K,V>(m: Map<K,V>, k: K) -> Option<V> { intrinsic "map.get" }
+fn put<K,V>(m: Map<K,V>, k: K, v: V) -> Map<K,V> { intrinsic "map.put" }
+fn has<K,V>(m: Map<K,V>, k: K) -> Bool { intrinsic "map.has" }
+fn keys<K,V>(m: Map<K,V>) -> List<K> { intrinsic "map.keys" }

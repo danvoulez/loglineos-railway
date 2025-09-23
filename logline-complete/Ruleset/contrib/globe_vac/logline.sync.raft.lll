@@ -1,0 +1,8 @@
+CONTRACT logline.sync.raft {
+  PARAMS { peer_url:string="http://logline.peer/v1/append" }
+  IMPORTS { sys.http; bus.core as bus; sys.time }
+  ENTRY replicate(msg) {
+    let res = sys.http.post(peer_url, msg)
+    bus.publish("logline.sync.confirm", { target:"raft", status:res.status, ts_ms:sys.time.now_ms() })
+  }
+}

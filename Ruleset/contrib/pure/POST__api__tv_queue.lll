@@ -1,0 +1,35 @@
+contract {
+  meta {
+    id: "http:post:/api//tv/queue"
+    app: "LOG_LINE_ENTERPRISE_PRODUCT_KIT"
+    version: "1.0.0"
+    created_at: "2025-09-15T07:48:57Z"
+    tenant_id: "*"
+    flow: "tv"
+    workflow: "geral"
+    tags: ["http", "handler", "ts-migrated"]
+  }
+trigger {
+  type: "http"
+  method: "POST"
+  path: "/api//tv/queue"
+  auth: "optional"
+  input.schema: null
+  output.schema: null
+}
+      payload {
+        text: """
+// Original TS handler (for audit only)
+import { NextRequest, NextResponse } from 'next/server'
+import { execContract } from '@/lib/engine'
+export async function POST(req: NextRequest){const b=await req.json().catch(()=>({}));const o=await execContract('tv.queue@v1',b);return NextResponse.json(o)}
+
+        """
+      }
+run [
+  "engine.route.dispatch",
+  "emit.receipt"
+]
+  federate { allow: true }
+  sign { by: "logline-id://dan", algo: "ed25519", sig: "PENDING" }
+}

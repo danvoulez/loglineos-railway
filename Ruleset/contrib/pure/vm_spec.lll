@@ -1,0 +1,9 @@
+package "sdk.vm.spec" version "0.1.0"
+import "sdk.ir.bytecode","sdk.core.types","sdk.std.list","sdk.std.map"
+
+sum Value = VI(Int) | VS(Text) | VMap(Map<Text,Value>)
+record Frame { ip: Int, stack: List<Value> }
+record VM { code: List<Instr>, frame: Frame, env: Map<Text,Value> }
+
+fn push_val(xs: List<Value>, v: Value) -> List<Value> { intrinsic "vm.push" }
+fn pop_val(xs: List<Value>) -> (List<Value>, Value) { intrinsic "vm.pop" }

@@ -1,0 +1,14 @@
+contract {
+  version: "1.0"
+  id: "wallet.update.balance"
+  workflow: "wallet"
+  flow: "ledger"
+  tags: ["wallet","update","stub"]
+  payload { note: "Atualiza saldo (simulado)" }
+  exec { run: [] }
+  signature { required: true signer: "logline-id://owner" }
+  federation { visibility: "public" allow: ["*"] }
+  provenance { source: <<'TEXT'
+stub.added
+TEXT>> migrated_at: "2025-09-15T08:25:40Z" }
+}

@@ -1,0 +1,30 @@
+CONTRACT sys.kms {
+  IMPORTS { sys.crypto; bus.core as bus; sys.time }
+  STATE { keys:map<string, any>, active_key_id:string }
+  ENTRY generate(msg) {
+    // msg: { key_id }
+    let kid = msg?.key_id ?? ("key-" + sys.time.now_ms())
+    keys[kid] = { created_ms: sys.time.now_ms(), material: sys.crypto.keygen() }
+    active_key_id = kid
+    bus.publish("kms.event", { action:"generate", key_id:kid })
+  }
+  ENTRY rotate(msg) {
+    let kid = msg?.key_id ?? ("key-" + sys.time.now_ms())
+    keys[kid] = { created_ms: sys.time.now_ms(), material: sys.crypto.keygen() }
+    active_key_id = kid
+    bus.publish("kms.event", { action:"rotate", key_id:kid })
+  }
+  ENTRY sign(req) {
+    // req: { key_id?, payload }
+    let kid = req?.key_id ?? active_key_id
+    if (!kid || !keys[kid]) return
+    let sig = sys.crypto.sign(req.payload, keys[kid].material)
+    bus.publish("kms.signed", { key_id: kid, signature: sig })
+  }
+  ENTRY verify(req) {
+    // req: { key_id, payload, signature }
+    if (!req?.key_id || !keys[req.key_id]) return
+    let ok = sys.crypto.verify(req.payload, req.signature, keys[req.key_id].material)
+    bus.publish("kms.verified", { key_id: req.key_id, ok: ok })
+  }
+}

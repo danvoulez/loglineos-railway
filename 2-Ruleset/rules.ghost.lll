@@ -1,0 +1,19 @@
+# rules.ghost.lll - Registro computável e ciclo de ghost entries
+
+ghost_rule {
+  handle_format: "@ghost_xxx"
+  min_entropy: 0.7
+  expiration: "48h"
+  max_reuse: 0
+  permissions: ["view timeline", "create spans"]
+  allow_reuse: false
+  onboarding_span: "ghost_identity_created"
+  audit: {
+    require_span: true,
+    log_action: "revocation"
+  }
+  error_handling: {
+    on_expired: "revoke"
+    on_invalid_format: "reject"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "color": {
+    "background": "#131313",
+    "surface": "#212121",
+    "primary": "#fff",
+    "danger": "#ef4444",
+    "ghost": "#fff",
+    "text": "#fff",
+    "textSecondary": "#bdbdbd",
+    "border": "#222",
+    "inputBorder": "#fff",
+    "inputBackground": "transparent"
+  },
+  "radius": {
+    "card": "24px",
+    "button": "16px",
+    "input": "16px"
+  },
+  "font": {
+    "title": "2rem",
+    "base": "1rem",
+    "weightBold": 700,
+    "weightMedium": 500
+  },
+  "shadow": {
+    "card": "0 2px 16px 0 rgba(0,0,0,0.12)"
+  },
+  "space": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px"
+  },
+  "colors": {
+    "background": "#0a0a0a",
+    "surface": "#1a1a1a",
+    "textPrimary": "#e0e0e0",
+    "textSecondary": "#9a9a9a",
+    "border": "#333333",
+    "neonGreen": "#00FFAA",
+    "neonBlue": "#00C8FF",
+    "neonPurple": "#C400FF",
+    "neonPink": "#FF29FF",
+    "neonYellow": "#FFD600"
+  },
+  "shape": {
+    "radius": 14,
+    "borderWidth": 2
+  },
+  "effects": {
+    "neonGlow": "0 0 10px rgba(0,255,170,.75)",
+    "focusRing": "0 0 0 3px rgba(0,255,170,.25)"
+  },
+  "typography": {
+    "fontFamily": "Space Grotesk, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, Liberation Sans, sans-serif"
+  }
+}

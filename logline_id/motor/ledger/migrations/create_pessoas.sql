@@ -1,0 +1,2 @@
+-- logline_id/motor/ledger/migrations/create_pessoas.sql
+-- Migration: Create pessoas table

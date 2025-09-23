@@ -1,0 +1,5 @@
+contract agent.execute@v1 {
+  input { agent_id: String, task: String, args: Json? }
+  try { step out = imported.vv_agent_full.run@v1 { agent_id: input.agent_id, task: input.task, args: input.args? }; return out }
+  catch { return { ok: false, error: "agent.import.missing" } }
+}

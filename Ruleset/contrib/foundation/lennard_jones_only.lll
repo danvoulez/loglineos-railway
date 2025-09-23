@@ -1,0 +1,15 @@
+# Pure Lennard-Jones Simulation
+# Example using only LJ forces without electrostatics
+
+PROTEIN "argon_cluster"
+NAME "lj_simulation"
+
+STAGE lj_dynamics {
+    kernel: lennard_jones
+    input positions: positions
+    output forces: vector3
+    param temperature: 85.0
+    param timestep: 0.002
+    param sigma: 3.4
+    param epsilon: 0.238
+}

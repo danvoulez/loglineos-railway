@@ -1,0 +1,8 @@
+CONTRACT enzyme.rollback {
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY rollback(span_id) {
+    let receipt = { span_id:span_id, rollback:true, reverted_at:sys.time.now_ms() }
+    bus.publish("receipt.issued", receipt)
+    bus.publish("enzyme.confirm", { action:"rollback", span_id, ts_ms: sys.time.now_ms() })
+  }
+}

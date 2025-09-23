@@ -1,0 +1,9 @@
+CONTRACT logline.llm {
+  IMPORTS { bus.core as bus; sys.time; sys.hash }
+  ENTRY ask(prompt, user_id) {
+    let req = { prompt, user_id, trace_id: sys.hash.blake3(prompt+user_id) }
+    let res = CALL gateway.llm::call(req)
+    bus.publish("receipt.issued", { span_id: res.span_id, issued_at: sys.time.now_ms(), trace_id: res.trace_id, user_id, tokens_in: res.tokens_in, tokens_out: res.tokens_out })
+    return res
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "simulate",
+  "engine": "isa",
+  "input_policy": "policy.llasm",
+  "input_facts": "facts.json",
+  "output": "result.log"
+}

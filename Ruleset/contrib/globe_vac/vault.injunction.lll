@@ -1,0 +1,18 @@
+CONTRACT vault.injunction {
+  IMPORTS { bus.core as bus; sys.time }
+  STATE { blocked:map<string, u64> } // until timestamp
+  ENTRY issue(msg) {
+    // msg: { user_id, until_ms, reason }
+    if (!msg?.user_id || !msg?.until_ms) return
+    blocked[msg.user_id] = msg.until_ms
+    bus.publish("vault.injunction.issued", { user_id: msg.user_id, until_ms: msg.until_ms, reason: msg.reason ?? "unspecified" })
+  }
+  ENTRY check(span) {
+    let uid = span?.metadata?.user_id ?? null
+    if (!uid) return
+    let until = blocked[uid] ?? 0
+    if (sys.time.now_ms() < until) {
+      bus.publish("quarantine.spans", { span:span, reason:"injunction_block", can_retry:false })
+    }
+  }
+}

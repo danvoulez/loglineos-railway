@@ -1,0 +1,6 @@
+CONTRACT chaos.kms.rotate_mid_batch {
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY inject(_) {
+    bus.publish("kms.event", { action:"rotate", chaos:true, ts_ms: sys.time.now_ms() })
+  }
+}

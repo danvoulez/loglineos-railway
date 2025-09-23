@@ -1,0 +1,28 @@
+/*
+    Description: Script de caso de uso final que demonstra o modelo de entanglement.
+*/
+
+#! GRAMMAR core.v1
+#! GRAMMAR pessoas.v1
+
+// Em vez de executar imediatamente, este script agora cria eventos START
+// que serão observados e colapsados pelo Watcher.
+
+LET start_event = Event {
+    kind: "START",
+    payload: {
+        who: "main.lll",
+        did: "onboard",
+        this: "p1",
+        data: { name: "Alice", role: "Admin" },
+        until: "2025-01-01T12:00:00Z",
+        entangle_id: "onboard-alice-123",
+        if_ok: "confirm_onboard",
+        if_not: "log_onboard_failure"
+    }
+}
+
+// Grava o evento START na timeline. O Watcher fará o resto.
+CALL DB::insert("timeline", start_event.entangle_id, start_event)
+
+CALL System::print("Evento START para o onboard de Alice foi emitido. Aguardando colapso pelo Watcher.")

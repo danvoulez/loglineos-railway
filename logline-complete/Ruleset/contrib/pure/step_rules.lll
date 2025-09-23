@@ -1,0 +1,42 @@
+package "sdk.vm.step" version "0.1.0"
+import "sdk.vm.spec","sdk.ir.bytecode","sdk.core.effects","sdk.core.time"
+
+fn step(vm: VM) -> VM {
+  let instr = vm.code[vm.frame.ip]
+  match instr {
+    PushI(n)      => { vm.frame.stack = push_val(vm.frame.stack, VI(n)); vm.frame.ip += 1; return vm }
+    PushS(s)      => { vm.frame.stack = push_val(vm.frame.stack, VS(s)); vm.frame.ip += 1; return vm }
+    NowMs         => { vm.frame.stack = push_val(vm.frame.stack, VI(now_ms())); vm.frame.ip += 1; return vm }
+    AddI          => {
+      let (stk1, vb) = pop_val(vm.frame.stack)
+      let (stk2, va) = pop_val(stk1)
+      let VI(ai) = va; let VI(bi) = vb
+      vm.frame.stack = push_val(stk2, VI(ai + bi))
+      vm.frame.ip += 1
+      return vm
+    }
+    FieldGet(k)   => {
+      let v = vm.env[k]
+      vm.frame.stack = push_val(vm.frame.stack, v)
+      vm.frame.ip += 1
+      return vm
+    }
+    MakeMap(keys) => {
+      vm.frame.stack = intrinsic "vm.popn.make_map"(vm.frame.stack, keys)
+      vm.frame.ip += 1
+      return vm
+    }
+    Ret => {
+      let (stk, top) = pop_val(vm.frame.stack); vm.frame.stack = stk
+      let VMap(mp) = top
+      effect emit_decision { action:"return", args: intrinsic "vm.map.to_text"(mp) }
+      return vm
+    }
+    Yield => {
+      let (stk, top) = pop_val(vm.frame.stack); vm.frame.stack = stk
+      let VMap(mp) = top
+      effect emit_decision { action:"sse.yield", args: intrinsic "vm.map.to_text"(mp) }
+      return vm
+    }
+  }
+}

@@ -1,0 +1,13 @@
+node {
+  logline_id: "LID:device:macmini-dan:v1"
+  tailscale: {
+    hostname: "macmini-dan",
+    tag: "server"
+  }
+  did_doc: {
+    "publicKey": "0xSIMULATEDKEYMACMINI-DAN",
+    "type": "ECDSA",
+    "curve": "secp256k1"
+  }
+  registered_at: "2025-08-30T00:00:00Z"
+}

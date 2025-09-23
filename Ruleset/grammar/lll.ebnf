@@ -1,0 +1,23 @@
+(* EBNF simplificada da gramática .lll *)
+program       = { declaration | contract | rule } ;
+declaration   = "let" identifier "=" value ";" ;
+contract      = "contract" identifier "{" { contract_field } "}" ;
+contract_field= identifier ":" value ";" ;
+rule          = "rule" identifier "(" params? ")" "->" action ";" ;
+
+params        = param { "," param } ;
+param         = identifier ":" type ;
+type          = "ID" | "Span" | "Number" | "String" | "Bool" | "JSON" ;
+
+action        = "emit" "(" "Receipt" "," json ")"
+              | "transition" "(" "Contract" "," identifier "," json ")"
+              | "validate" "(" identifier "," json ")" ;
+
+value         = number | string | json | bool ;
+json          = "{" { string ":" value { "," string ":" value } } "}" ;
+identifier    = letter { letter | digit | "_" } ;
+number        = digit { digit } ;
+string        = "\"" { ? any char except " ? } "\"" ;
+bool          = "true" | "false" ;
+letter        = "A" | ... | "Z" | "a" | ... | "z" ;
+digit         = "0" | ... | "9" ;

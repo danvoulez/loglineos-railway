@@ -1,0 +1,12 @@
+CONTRACT vault.stake {
+  STATE  { stakes: map<string,map<string,f64>> = {} }
+  IMPORTS { vault.operator as vault; sys.time; bus.core as bus }
+  ENTRY stake(user, contract_id, amount) {
+    let balance = vault.balance(user)
+    if (balance < amount) { bus.publish("vault.stake.failed", { user, contract_id, reason:"insufficient_balance", ts:sys.time.now_ms() }); return }
+    stakes[user] = stakes[user] ?? {}
+    stakes[user][contract_id] = (stakes[user][contract_id]??0.0) + amount
+    bus.publish("vault.stake.success", { user, contract_id, amount, ts:sys.time.now_ms() })
+  }
+  ENTRY get(user, contract_id) -> f64 { return stakes[user]?[contract_id] ?? 0.0 }
+}

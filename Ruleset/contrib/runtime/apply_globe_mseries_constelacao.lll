@@ -1,0 +1,42 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 6 · POLICY  —  “apply_globe_mseries_constelacao”
+;═════════════════════════════════════════════════════════════════════════════
+POLICY policy.apply_globe_mseries_constelacao {
+  FOR topic IN [
+      "intake.spans","admitted.spans","quarantine.spans","dlq.spans",
+      "orbit.hot","orbit.warm","orbit.cold",
+      "receipt.raw","receipt.issued",
+      "metrics.bus","metrics.admission","metrics.autoscaler",
+      "metrics.orchestrator","metrics.latency.hot",
+      "slo.violation","control.window",
+      "metrics.ledger","logline.sync.confirm","enzyme.confirm","enzyme.alert",
+      "vault.balance.update","vault.stake.success","vault.stake.failed"
+  ] { INIT bus.core.create(topic) }
+
+  ATTACH bus.core            to star {}
+  ATTACH bus.dedupe          to star {}
+
+  ATTACH coord.admission     to star { rps_target:2500, base_qmin:0.25 }
+  ATTACH coord.autoscaler    to star { ewma_alpha:0.25, cool_down_ms:15000 }
+
+  ATTACH workerd.pool        to star {}
+
+  ATTACH workerd.exec as worker_plus  to star { orbit:"hot",  concurrency:32, ds_budget_per_cycle:8000, code:"tensor.engine" }
+  ATTACH workerd.exec as worker_warm  to star { orbit:"warm" }
+  ATTACH workerd.exec as worker_cold  to star { orbit:"cold" }
+
+  ATTACH enzyme.replay       to star {}
+  ATTACH enzyme.enrich       to star {}
+  ATTACH enzyme.rollback     to star {}
+  ATTACH enzyme.guard        to star {}
+
+  ATTACH ledger.append       to star { batch_max:64, flush_interval_ms:3000 }
+
+  ATTACH bus.relay as to_ledger to star { from:"admitted.spans", to:"ledger.append::ingest" }
+
+  ATTACH motor.orchestrator as maestro to star { period_ms:12000, phase_guard:0.22, slos:{eta:0.80,hbv:0.09,r99_factor:2.2}, nudge_amp:0.06 }
+
+  INIT maestro.register_engine("worker_plus",    "plus")
+  INIT maestro.register_engine("engine.enzyme",  "enzyme")
+  INIT maestro.register_engine("worker_cold",    "minus")
+}

@@ -1,0 +1,7 @@
+policy bus@u1.0 {
+  # reversible ETL + routing hints (no side effects by default)
+  when span.status == "error" {
+    notify role:"oncall" msg:"error-span"
+    receipt issue reason:"bus-error"
+  }
+}

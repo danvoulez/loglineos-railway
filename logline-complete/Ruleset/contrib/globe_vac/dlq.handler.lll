@@ -1,0 +1,20 @@
+CONTRACT dlq.handler {
+  IMPORTS { bus.core as bus; sys.time; }
+  STATE { retry_map:map<string,u32> }
+  PARAMS { max_retries:u32=5 }
+  ENTRY ingest(msg) {
+    // msg: { span, reason, can_retry }
+    if (!msg?.span?.span_id) { return }
+    let span_id = msg.span.span_id
+    let rc = retry_map[span_id] ?? 0
+    let reason = msg.reason ?? "unknown"
+    let can = (msg.can_retry ?? false) && (rc < max_retries)
+    bus.publish("metrics.dlq", { span_id:span_id, reason:reason, retry_count:rc, can_retry:can, ts_ms:sys.time.now_ms() })
+    if (can) {
+      retry_map[span_id] = rc + 1
+      bus.publish("dlq.queue", { span: msg.span, reason: reason, retry_count: rc+1, can_retry:true })
+    } else {
+      bus.publish("dlq.final", { span: msg.span, reason: reason, retry_count: rc, can_retry:false })
+    }
+  }
+}

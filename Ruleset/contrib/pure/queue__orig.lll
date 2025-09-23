@@ -1,0 +1,5 @@
+contract tv.queue@v1 {
+  input { program: String, action: String="enqueue", payload: Json? }
+  try { step out = imported.tv_queue_pack.queue@v1 { program: input.program, action: input.action, payload: input.payload? }; return out }
+  catch { return { ok: false, error: "tv_queue.import.missing" } }
+}

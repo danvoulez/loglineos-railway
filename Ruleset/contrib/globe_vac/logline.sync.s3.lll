@@ -1,0 +1,18 @@
+CONTRACT logline.sync.s3 {
+  PARAMS { flush_interval_ms:u64=5000, upload_threshold:u32=128 }
+  STATE  { buffer:list<any>=[], last_flush:u64=0 }
+  IMPORTS { sys.fs; sys.time; sys.hash; sys.shell; bus.core as bus }
+  FUNC flush() {
+    if (buffer.len() == 0) { return }
+    let ts = sys.time.now_ms()
+    let id = sys.hash.blake3("s3batch"+ts+buffer.len())
+    let path = "/tmp/batch_"+id+".ndjson"
+    WRITE ndjson path buffer
+    let cmd = "aws s3 cp "+path+" s3://logline-bucket/ledger/"+id+".ndjson"
+    sys.shell.exec(cmd)
+    bus.publish("logline.sync.confirm", { target:"s3", id, count:buffer.len(), ts_ms:ts })
+    buffer = []; last_flush = ts
+  }
+  ENTRY ingest(msg) { buffer.push(msg); if (buffer.len() >= upload_threshold) { CALL flush() } }
+  ENTRY loop { LOOP L { let now = sys.time.now_ms(); if (now - last_flush > flush_interval_ms) { CALL flush() } SLEEP 500 } }
+}

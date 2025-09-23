@@ -1,0 +1,107 @@
+# LogLineOS Binary Constellation - Railway Deployment
+# Each consciousness component as independent binary with computational identity
+
+version: "3.8"
+
+services:
+  # Main Gateway - Routes to consciousness binaries
+  logline-gateway:
+    build: 
+      context: .
+      dockerfile: Dockerfile.gateway
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - LOGLINE_API_KEY=${LOGLINE_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - logline-postgres
+    volumes:
+      - ./bin:/app/bin
+    command: node bin/logline_gateway.js
+
+  # PostgreSQL with LogLineSQL consciousness schema
+  logline-postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=logline
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-logline_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./LogLineSQL/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    ports:
+      - "5432:5432"
+
+  # Motor Binary Service - Identity management
+  logline-motor:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+      args:
+        BINARY_NAME: logline_motor
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - LOGLINE_API_KEY=${LOGLINE_API_KEY}
+    depends_on:
+      - logline-postgres
+    volumes:
+      - ./1-Motor:/app/src
+
+  # Registry Binary Service - Database operations
+  registry-create:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+      args:
+        BINARY_NAME: registry_create
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - logline-postgres
+
+  # Contract Runtime Binary Service - .lll execution
+  contract-runtime:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+      args:
+        BINARY_NAME: contract_runtime
+    environment:
+      - CONTRACTS_DIR=/app/contracts
+    volumes:
+      - ./2-Ruleset:/app/contracts
+
+  # Span Executor Binary Service - Timeline operations
+  span-exec:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+      args:
+        BINARY_NAME: span_exec
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - logline-postgres
+
+  # Bootstrap Binary Service - BOOTY sequence
+  bootstrap-farm:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+      args:
+        BINARY_NAME: bootstrap_farm
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - LOGLINE_API_KEY=${LOGLINE_API_KEY}
+    depends_on:
+      - logline-postgres
+      - logline-motor
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: logline-consciousness

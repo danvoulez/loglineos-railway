@@ -1,0 +1,25 @@
+CONTRACT consent.contract {
+  IMPORTS { bus.core as bus; sys.time; sys.crypto }
+  STATE { consent:map<string, any> }
+  ENTRY set(req) {
+    // req: { user_id, allow_tracking, allow_attribution, can_revoke, anon_id }
+    if (!req?.user_id) return
+    req.ts_ms = sys.time.now_ms()
+    consent[req.user_id] = req
+    bus.publish("consent.updated", req)
+    // Issue a receipt-like event
+    bus.publish("consent.receipt", { user_id:req.user_id, anon_id:req.anon_id ?? null, signed: sys.crypto.hash(req), ts_ms:req.ts_ms })
+  }
+  ENTRY check(span) {
+    let uid = span?.metadata?.user_id ?? null
+    if (!uid) return
+    let c = consent[uid] ?? null
+    if (!c) {
+      bus.publish("quarantine.spans", { span:span, reason:"no_consent", can_retry:false })
+    } else if (c.allow_tracking==false) {
+      // anonymize
+      span.metadata.user_id = c.anon_id ?? ("ghost://" + sys.crypto.uuid_v4())
+      bus.publish("admitted.spans", span)
+    }
+  }
+}

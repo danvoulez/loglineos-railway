@@ -1,0 +1,35 @@
+{
+  "span_id": "span-2025-09-23T153000Z-001",
+  "type": "registry.create",
+  "timestamp": "2025-09-23T15:30:00Z",
+  "logline_id": "logline-id://dan.amarilho",
+  "entity_type": "person",
+  "action": "create_identity",
+  "actor": "logline-id://dan.amarilho",
+  "payload": {
+    "name": "Dan Amarilho",
+    "email": "dan@danvoulez.com",
+    "auth_methods": ["passkey", "biometric_facial"],
+    "trust_level": "high"
+  },
+  "provenance": {
+    "source": "self_register",
+    "ip": "192.168.1.100",
+    "user_agent": "LogLine-UI/1.0.0",
+    "onboarding_flow": "ghost_to_verified"
+  },
+  "file_ref": "registry_store/logline-id:--dan.amarilho/dan_identity_card.pdf",
+  "signature": "ed25519:abc123def456...",
+  "executable": true,
+  "execution_context": {
+    "can_replay": true,
+    "requires_auth": true,
+    "dependencies": ["logline_motor", "registry_store"]
+  },
+  "status": "completed",
+  "next_actions": [
+    "activate_permissions",
+    "setup_biometric_auth",
+    "create_welcome_contract"
+  ]
+}

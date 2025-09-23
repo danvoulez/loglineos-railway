@@ -1,0 +1,36 @@
+package "sdk.compiler.codegen_lir" version "0.1.0"
+import "sdk.ir.lir_spec","sdk.ir.bytecode","sdk.std.list"
+
+emit_programs(m: Module) -> List<Program> {
+  let ops = filter_operations(m.items)
+  return map(ops, compile_op)
+}
+fn filter_operations(items: List<Item>) -> List<Operation> { intrinsic "codegen.ops" }
+
+fn compile_op(op: Operation) -> Program {
+  match op.handler {
+    Return(map) =>
+      let kv = kv_lists(map)
+      let code = compile_exprs(kv.values) ++ [ MakeMap(kv.keys), Ret ]
+      return Program { op_id: op.id, code }
+    Stream(sse, ymap) =>
+      let kv = kv_lists(ymap)
+      let code = compile_exprs(kv.values) ++ [ MakeMap(kv.keys), Yield ]
+      return Program { op_id: op.id, code }
+  }
+}
+record KVLists { keys: List<Text>, values: List<Expr> }
+fn kv_lists(m: Map<Text,Expr>) -> KVLists { intrinsic "codegen.kv_lists" }
+
+fn compile_exprs(xs: List<Expr>) -> List<Instr> {
+  return fold(xs, [], \acc, e. acc ++ compile_expr(e))
+}
+fn compile_expr(e: Expr) -> List<Instr> {
+  match e {
+    LitInt(n)    => [ PushI(n) ]
+    LitText(s)   => [ PushS(s) ]
+    Add(a,b)     => compile_expr(a) ++ compile_expr(b) ++ [ AddI ]
+    NowMs        => [ NowMs ]
+    Field(name)  => [ FieldGet(name) ]
+  }
+}

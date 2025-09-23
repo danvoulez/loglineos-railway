@@ -1,0 +1,21 @@
+# rules.fingerprint.lll - Regras computáveis para fingerprint LogLineID
+
+fingerprint_rule {
+  required_fields: ["fingerprint_hash", "match_score"]
+  min_match_score: 0.92
+  allow_multiple: false
+  onboarding_span: "fingerprint_onboarding"
+  revocation: {
+    on_request: true,
+    on_mismatch: true
+    on_expired: true
+  }
+  audit: {
+    require_span: true,
+    log_action: "revocation"
+  }
+  error_handling: {
+    on_low_score: "reject"
+    on_duplicate: "reject"
+  }
+}

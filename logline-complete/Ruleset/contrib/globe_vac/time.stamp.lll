@@ -1,0 +1,10 @@
+CONTRACT time.stamp {
+  IMPORTS { bus.core as bus; sys.time; sys.crypto }
+  PARAMS { tsa_url:string="https://tsa.example.com" } // placeholder
+  ENTRY seal(msg) {
+    // msg: { merkle_root, batch_id }
+    if (!msg?.merkle_root) return
+    let token = sys.crypto.hash({ merkle: msg.merkle_root, ts: sys.time.now_ms(), tsa: tsa_url })
+    bus.publish("time.stamped", { batch_id: msg?.batch_id ?? null, merkle_root: msg.merkle_root, tsa_url: tsa_url, token: token, ts_ms: sys.time.now_ms() })
+  }
+}

@@ -1,0 +1,19 @@
+package "sdk.providers.http2" version "0.3.0"
+requires capability ["net.http.server","policy.cors","policy.rate_limit","audit.span","telemetry.core"]
+
+automaton HTTP2 {
+  state Idle; state Accepting; state Routing; state Handling; state Responding
+
+  transition Idle -> Accepting on tcp.accept()
+  transition Accepting -> Routing on http2.frame()
+  transition Routing -> Handling on route_found()
+  transition Handling -> Responding on handler_done()
+
+  on_enter Responding do effect emit_decision { action:"http.respond", args: current_response() }
+
+  # Métrica nativa por request (sem Prometheus):
+  on_enter Responding do effect emit_decision {
+    action:"metric.observe",
+    args: http.current.metrics()  # name, labels {method, path_template, status}, value: duration_ms
+  }
+}

@@ -1,0 +1,13 @@
+simulate overlay "teste_institucional" from snapshot latest {{
+  with kv_overrides {{ "flags:modo_teste": true }}
+  run {{
+    call ProcessarFeedback({{ referencia: "evento_12", sugestao: "Melhorar integração com kernel" }})
+    call AvaliarProposta({{ id: "prop23", objetivo: "expandir CLI", impacto_estimado: 1.8 }})
+    call DiscordarConstrutivamente({{ tipo: "discordancia", sem_ataque_pessoal: true, origem: "logline_dev" }})
+  }}
+  collect metrics {{
+    output "feedbacks_validados", count(events.FeedbackRegistrado)
+    output "propostas_aprovadas", count(events.PropostaAprovada)
+    output "desacordos_construtivos", count(events.DesacordoValidado)
+  }}
+}}

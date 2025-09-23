@@ -1,0 +1,2 @@
+-- logline_id/motor/ledger/migrations/create_auth_users.sql
+-- Migration: Create auth_users table

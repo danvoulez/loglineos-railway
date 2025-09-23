@@ -1,0 +1,28 @@
+{
+  "logline_id": "logline-id://dan.amarilho",
+  "entity_type": "person",
+  "version": 1,
+  "payload": {
+    "name": "Dan Amarilho",
+    "email": "dan@danvoulez.com",
+    "trust_level": "high",
+    "avatar": "logline://blob/dan_avatar_001",
+    "created_by": "self_register",
+    "permissions": [
+      "create_contracts",
+      "manage_identity",
+      "execute_spans"
+    ],
+    "biometric_hash": "sha256:abc123def456...",
+    "preferred_auth": ["passkey", "biometric_facial"]
+  },
+  "provenance": {
+    "source": "self_register",
+    "ip": "192.168.1.100",
+    "user_agent": "LogLine-UI/1.0.0",
+    "timestamp": "2025-09-23T15:30:00Z"
+  },
+  "creator_id": "logline-id://dan.amarilho",
+  "created_at": "2025-09-23T15:30:00Z",
+  "file_ref": "registry_store/logline-id:--dan.amarilho/dan_identity_card.pdf"
+}

@@ -1,0 +1,7 @@
+policy region_pin@ledger {
+  when tenant.region in ["eu-west","eu-central","pt"] {
+    # implementation-specific inside VM (no external IO)
+    ledger.pin region:tenant.region
+    receipt issue reason:"region-ledger-pin"
+  }
+}

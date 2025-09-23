@@ -1,0 +1,25 @@
+flow ProcessarFeedback {{
+  on event(FeedbackRecebido) {{
+    if FeedbackValido(event.feedback) {{
+      emit FeedbackRegistrado {{ referencia: event.feedback.referencia }}
+    }} else {{
+      rollback {{ emit FeedbackRejeitado {{ motivo: "inválido" }} }}
+    }}
+  }}
+}}
+
+flow AvaliarProposta(p) {{
+  if PropostaClara(p) {{
+    emit PropostaAprovada {{ id: p.id, impacto: p.impacto_estimado }}
+  }} else {{
+    emit PropostaRejeitada {{ id: p.id }}
+  }}
+}}
+
+flow DiscordarConstrutivamente(expr) {{
+  if DesacordoConstrutivo(expr) {{
+    emit DesacordoValidado {{ origem: expr.origem, contexto: expr.contexto }}
+  }} else {{
+    rollback {{ emit DesacordoRejeitado {{ motivo: "ataque pessoal" }} }}
+  }}
+}}

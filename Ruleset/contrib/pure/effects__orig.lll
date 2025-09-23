@@ -1,0 +1,11 @@
+package "sdk.core.effects" version "0.1.0"
+
+# Efeitos padronizados
+effect emit_span { attrs: Map<Text,Text> }
+effect emit_decision { action: Text, args: Map<Text,Text> }
+
+effect kv_put { ns: Text, key: Text, val: Bytes }
+effect kv_get { ns: Text, key: Text -> Option<Bytes> }
+
+effect queue_publish { topic: Text, msg: Bytes }
+effect queue_consume { topic: Text -> Option<Bytes> }

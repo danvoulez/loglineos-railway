@@ -1,0 +1,6 @@
+policy migration@u1.0 {
+  when schema.diff detected {
+    plan migrate steps:>0 reversible:true
+    receipt issue reason:"schema-migration-plan"
+  }
+}

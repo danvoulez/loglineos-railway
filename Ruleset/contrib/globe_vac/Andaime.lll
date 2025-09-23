@@ -1,0 +1,61 @@
+# === File: Andaime.lll ===
+# Description: O processo de build institucional para o LogLine Motor.
+#              Este arquivo orquestra a compilação e teste de todos os componentes.
+# Author: @danvoulez
+# Version: S.11
+
+# -----------------------------------------------------------------------------
+# Alvo Principal (`all`)
+# -----------------------------------------------------------------------------
+# Este é o alvo padrão. Ele define a sequência completa para um build limpo:
+# primeiro os plugins, depois o motor principal, e finalmente os testes.
+TARGET(all) {
+    DEPENDS_ON: plugins build_motor test
+}
+
+# -----------------------------------------------------------------------------
+# Alvo de Compilação de Plugins (`plugins`)
+# -----------------------------------------------------------------------------
+# Responsável por compilar todos os módulos de baixo nível (WASM ou nativos)
+# que fornecem as "syscalls" para o motor.
+TARGET(plugins) {
+    # Em uma implementação real, os comandos de compilação estariam aqui.
+    # Exemplo: RUN: cargo build --release --manifest-path=plugins/syscalls/Cargo.toml
+    RUN: echo "Simulando a compilação de plugins... (syscalls.wasm, db.wasm)"
+    RUN: mkdir -p plugins/target/ && touch plugins/target/placeholder.txt
+}
+
+# -----------------------------------------------------------------------------
+# Alvo de Compilação do Motor (`build_motor`)
+# -----------------------------------------------------------------------------
+# Responsável por compilar o binário principal da SVM (Span Virtual Machine).
+# Ele só será executado se os arquivos fonte forem mais recentes que o binário.
+TARGET(build_motor) {
+    DEPENDS_ON_FILES: motor/src motor/Cargo.toml
+    OUTPUT_FILE: motor/target/release/logline-motor
+
+    RUN: echo "Compilando o motor principal (SVM)..."
+    # Exemplo: RUN: cargo build --release --manifest-path=motor/Cargo.toml
+    RUN: mkdir -p motor/target/release/ && touch motor/target/release/logline-motor
+}
+
+# -----------------------------------------------------------------------------
+# Alvo de Execução de Testes (`test`)
+# -----------------------------------------------------------------------------
+# Roda a suíte de testes completa para garantir a integridade do sistema.
+# Depende do motor já estar compilado.
+TARGET(test) {
+    DEPENDS_ON: build_motor
+    RUN: echo "Executando a suíte de testes completa..."
+    # Exemplo: RUN: cargo test --workspace
+}
+
+# -----------------------------------------------------------------------------
+# Alvo de Limpeza (`clean`)
+# -----------------------------------------------------------------------------
+# Remove todos os artefatos gerados pelo build.
+TARGET(clean) {
+    RUN: echo "Limpando artefatos de build..."
+    # Exemplo: RUN: cargo clean
+    RUN: rm -f timeline.jsonl
+}

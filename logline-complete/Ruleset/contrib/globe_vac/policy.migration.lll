@@ -1,0 +1,27 @@
+CONTRACT policy.migration {
+  IMPORTS { bus.core as bus }
+  STATE { rollout:map<string, any> }
+  ENTRY set(cfg) {
+    // cfg: { contract_id, version, mode: "canary|shadow|rollback", percent: u8 }
+    if (!cfg?.contract_id) return
+    rollout[cfg.contract_id] = cfg
+    bus.publish("migration.updated", cfg)
+  }
+  ENTRY route(span) {
+    let c = rollout[span?.contract_id ?? ""] ?? null
+    if (!c) { bus.publish("route.default", span); return }
+    if (c.mode=="shadow") {
+      bus.publish("route.default", span)
+      bus.publish("route.shadow", { cfg:c, span:span })
+    } else if (c.mode=="canary") {
+      let p = (c.percent ?? 10)
+      let bucket = (span?.span_id ?? "0").hashCode() % 100
+      if (bucket < p) bus.publish("route.canary", { cfg:c, span:span })
+      else bus.publish("route.default", span)
+    } else if (c.mode=="rollback") {
+      bus.publish("route.rollback", { cfg:c, span:span })
+    } else {
+      bus.publish("route.default", span)
+    }
+  }
+}

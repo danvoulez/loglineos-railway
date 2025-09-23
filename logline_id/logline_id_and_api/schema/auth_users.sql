@@ -1,0 +1,2 @@
+-- logline_id/logline_id_and_api/schema/auth_users.sql
+-- Placeholder: auth_users table schema

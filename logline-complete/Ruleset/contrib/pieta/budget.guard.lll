@@ -1,0 +1,14 @@
+policy budget.guard@u1.0 {
+  param monthly_cap_eur default 1000
+  track spend_eur by workflow
+
+  when spend_eur.monthly >= monthly_cap_eur * 0.9 {
+    notify role:"finops" msg:"budget-guard-warn"
+    receipt issue reason:"budget-guard-warn"
+  }
+
+  when spend_eur.monthly >= monthly_cap_eur {
+    block workflow:current
+    receipt issue reason:"budget-guard-cap-hit"
+  }
+}

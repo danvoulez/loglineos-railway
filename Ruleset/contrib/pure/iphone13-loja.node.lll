@@ -1,0 +1,13 @@
+node {
+  logline_id: "LID:device:iphone13-loja:v1"
+  tailscale: {
+    hostname: "iphone13-loja",
+    tag: "tv"
+  }
+  did_doc: {
+    "publicKey": "0xSIMULATEDKEYIPHONE13-LOJA",
+    "type": "ECDSA",
+    "curve": "secp256k1"
+  }
+  registered_at: "2025-08-30T00:00:00Z"
+}

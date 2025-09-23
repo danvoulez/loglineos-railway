@@ -1,0 +1,10 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 1-B · BUS DEDUPE  —  “Mesma roda não pisa duas vezes”
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT bus.dedupe {
+  PARAMS { ttl_s:u64 = 604_800 }
+  STATE  { seen:map<string,u64> }
+  IMPORTS { sys.time }
+  ENTRY seen_before(id)->bool { let t = seen[id] ?? 0; return t > 0 && (sys.time.now_s() - t) < ttl_s; }
+  ENTRY mark(id) { seen[id] = sys.time.now_s(); }
+}

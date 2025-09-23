@@ -1,0 +1,21 @@
+contract {
+  meta {
+    id: "routes:http:44136fa3"
+    app: "LOG_LINE_ENTERPRISE_PRODUCT_KIT"
+    version: "1.0.0"
+    created_at: "2025-09-15T07:48:57Z"
+    tenant_id: "*"
+    flow: "routes"
+    workflow: "geral"
+    tags: ["routes", "http"]
+  }
+      routes {
+  "_raw": "unparsed"
+}
+run [
+  "persist.contract",
+  "emit.routes.update"
+]
+  federate { allow: true }
+  sign { by: "logline-id://dan", algo: "ed25519", sig: "PENDING" }
+}

@@ -1,0 +1,14 @@
+CONTRACT dlq.policy {
+  IMPORTS { bus.core as bus; sys.time; }
+  PARAMS { can_retry_reasons:list<string>=["parse_error","transient"], block_reasons:list<string>=["missing_template","auth_failed"] }
+  ENTRY classify(msg) {
+    let r = msg?.reason ?? "unknown"
+    let can = (CALL contains(can_retry_reasons, r)) && !(CALL contains(block_reasons, r))
+    let out = { span: msg?.span ?? null, reason: r, can_retry: can }
+    bus.publish("dlq.classified", out)
+  }
+  FUNC contains(list, item)->bool {
+    for x in list { if (x==item) return true } 
+    return false
+  }
+}

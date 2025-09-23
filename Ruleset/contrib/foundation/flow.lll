@@ -1,0 +1,6 @@
+flow_id: tenant_creation
+workflow: create_tenant_workflow
+rules:
+  - if: payload.tenant_id != null
+    then: allow
+  - else: reject

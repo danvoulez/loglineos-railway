@@ -1,0 +1,26 @@
+package "sdk.core.capabilities" version "0.3.0"
+
+capability "net.http.server"
+capability "net.tls"
+capability "policy.cors"
+capability "policy.rate_limit"
+capability "audit.span"
+capability "kv"
+capability "queue"
+capability "scheduler"
+capability "crypto.seal"
+capability "search.text"
+capability "search.vector"
+capability "notify"
+
+# Telemetry & SLO (substitui Prometheus/Jaeger)
+capability "telemetry.core"
+capability "telemetry.query"
+capability "slo.engine"
+
+# Addons (substitui SaaS)
+capability "flags.core"      # feature flags, segmentação, targeting
+capability "ab.elo"          # A/B pairwise Elo
+capability "auth.core"       # tokens (PASETO), guardas
+capability "flow.engine"     # pipeline/CI declarativo
+capability "oncall.core"     # rotação, escalonamento

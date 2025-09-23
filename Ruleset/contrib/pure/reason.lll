@@ -1,0 +1,5 @@
+contract agi.reason@v1 {
+  input { objective: String, context: Json? }
+  try { step out = imported.agi_bundle.reason@v1 { objective: input.objective, context: input.context? }; return out }
+  catch { return { ok: false, error: "agi.import.missing" } }
+}

@@ -1,0 +1,90 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 5-A · KERNELS METAL INLINE
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT tensor.kernels {
+
+  CONST matmul_tiled16 = raw"""
+#include <metal_stdlib>
+using namespace metal;
+
+constexpr uint TILE = 16;
+
+kernel void matmul_tiled16(
+    device const float* A [[ buffer(0) ]],
+    device const float* B [[ buffer(1) ]],
+    device float*       C [[ buffer(2) ]],
+    constant uint&      M [[ buffer(3) ]],
+    constant uint&      N [[ buffer(4) ]],
+    constant uint&      P [[ buffer(5) ]],
+    uint2 tid [[ thread_position_in_threadgroup ]],
+    uint2 gid [[ threadgroup_position_in_grid ]],
+    threadgroup float As[TILE][TILE],
+    threadgroup float Bs[TILE][TILE])
+{
+    uint row = gid.y * TILE + tid.y;
+    uint col = gid.x * TILE + tid.x;
+    float acc = 0.0f;
+
+    for(uint t=0; t < (N+TILE-1)/TILE; ++t) {
+        uint tiledA = row * N + (t*TILE + tid.x);
+        uint tiledB = (t*TILE + tid.y) * P + col;
+        As[tid.y][tid.x] = (row < M && (t*TILE+tid.x) < N) ? A[tiledA] : 0.0f;
+        Bs[tid.y][tid.x] = ((t*TILE+tid.y) < N && col < P) ? B[tiledB] : 0.0f;
+
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+
+        #pragma unroll
+        for (uint k = 0; k < TILE; ++k)
+            acc += As[tid.y][k] * Bs[k][tid.x];
+
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+
+    if (row < M && col < P)
+        C[row * P + col] = acc;
+}
+""";
+
+  CONST conv2d_patch8 = raw"""
+#include <metal_stdlib>
+using namespace metal;
+
+constexpr uint TILE = 8;
+constant bool use_relu [[ function_constant(0) ]];
+
+kernel void conv2d_patch8(
+    device const float* input  [[ buffer(0) ]],
+    device const float* kernel [[ buffer(1) ]],
+    device float*       output [[ buffer(2) ]],
+    constant uint&      W      [[ buffer(3) ]],   // width
+    constant uint&      H      [[ buffer(4) ]],   // height
+    constant uint&      K      [[ buffer(5) ]],   // kernel size (3,5…)
+    uint2 tid [[ thread_position_in_threadgroup ]],
+    uint2 gid [[ threadgroup_position_in_grid ]],
+    threadgroup float patch[TILE+6][TILE+6])      // máx K=7
+{
+    uint gx = gid.x * TILE + tid.x;
+    uint gy = gid.y * TILE + tid.y;
+
+    for (uint dy = 0; dy < K; ++dy)
+        for (uint dx = 0; dx < K; ++dx) {
+            uint ix = gx + dx;
+            uint iy = gy + dy;
+            patch[tid.y+dy][tid.x+dx] =
+                (ix < W && iy < H) ? input[iy*W + ix] : 0.0f;
+        }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    if (gx >= W || gy >= H) return;
+
+    float acc = 0.0f;
+    for (uint ky = 0; ky < K; ++ky)
+        for (uint kx = 0; kx < K; ++kx)
+            acc += patch[tid.y+ky][tid.x+kx] *
+                   kernel[ky*K + kx];
+
+    if (use_relu) acc = max(acc, 0.0f);
+    output[gy*W + gx] = acc;
+}
+""";
+}

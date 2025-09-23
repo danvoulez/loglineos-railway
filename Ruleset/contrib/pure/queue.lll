@@ -1,0 +1,5 @@
+package "sdk.providers.queue" version "0.1.0"
+requires capability ["queue","kv"]
+
+policy PUBLISH { on queue.publish(topic=?t, msg=?m) do effect emit_decision { action:"wal.append", args:{ topic:t, msg:m } } }
+policy CONSUME { on queue.consume(topic=?t)         do effect emit_decision { action:"wal.read",   args:{ topic:t } } }

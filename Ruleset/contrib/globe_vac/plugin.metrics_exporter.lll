@@ -1,0 +1,118 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   PLUGIN · METRICS EXPORTER  —  "Batidas por Prometheus"
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT plugin.metrics_exporter {
+  PARAMS {
+    port: u16 = 9102
+    interval_ms: u64 = 15000
+    metrics_prefix: string = "logline"
+  }
+  
+  STATE { 
+    server_handle: any = null 
+    metrics_registry: map<string, any> = {}
+  }
+  
+  IMPORTS { sys.http; sys.time; sys.math; sys.fs; bus.core as bus }
+  
+  ENTRY start() {
+    if (server_handle != null) { return; }
+    
+    server_handle = sys.http.serve_metrics(port);
+    bus.publish("metrics.plugin", { 
+      type: "server_started", 
+      port, 
+      ts_ms: sys.time.now_ms() 
+    });
+    
+    SPAWN collect_metrics();
+  }
+  
+  ENTRY stop() {
+    if (server_handle == null) { return; }
+    
+    sys.http.close(server_handle);
+    server_handle = null;
+    bus.publish("metrics.plugin", { 
+      type: "server_stopped", 
+      ts_ms: sys.time.now_ms() 
+    });
+  }
+  
+  ENTRY collect_metrics() {
+    LOOP L {
+      // Collect Orchestrator Metrics
+      let orchestrator = READ ndjson "/var/log/logline/bus_metrics.orchestrator.ndjson" latest=true;
+      if (orchestrator != null) {
+        sys.http.register_metric("gauge", "logline_globe_eta", "Efficiency ratio");
+        sys.http.register_metric("gauge", "logline_globe_hbv", "Heartbeat variance");
+        sys.http.register_metric("gauge", "logline_globe_r99_ms", "p99 latency in ms");
+        sys.http.register_metric("gauge", "logline_globe_period_ms", "Orchestration period");
+        
+        sys.http.set_metric("logline_globe_eta", orchestrator.η ?? 0.0);
+        sys.http.set_metric("logline_globe_hbv", orchestrator.hbv ?? 0.0);
+        sys.http.set_metric("logline_globe_r99_ms", orchestrator.r99 ?? 0.0);
+        sys.http.set_metric("logline_globe_period_ms", orchestrator.period_ms ?? 12000);
+      }
+      
+      // Collect Bus Metrics
+      for orbit in ["hot", "warm", "cold"] {
+        let depth = bus.depth("orbit." + orbit) ?? 0;
+        sys.http.register_metric("gauge", "logline_orbit_depth", "Queue depth per orbit", ["orbit"]);
+        sys.http.set_metric("logline_orbit_depth", depth, [orbit]);
+      }
+      
+      // Collect Admission Metrics
+      let admission = READ ndjson "/var/log/logline/bus_metrics.admission.ndjson" latest=true;
+      if (admission != null) {
+        sys.http.register_metric("gauge", "logline_admission_q_min", "Dynamic quality threshold");
+        sys.http.register_metric("gauge", "logline_admission_depth", "Intake queue depth");
+        sys.http.register_metric("gauge", "logline_admission_ewma_rps", "Moving average RPS");
+        
+        sys.http.set_metric("logline_admission_q_min", admission.q_min_dyn ?? 0.0);
+        sys.http.set_metric("logline_admission_depth", admission.depth ?? 0);
+        sys.http.set_metric("logline_admission_ewma_rps", admission.ewma_rps ?? 0.0);
+      }
+      
+      // Collect Autoscaler Metrics
+      let autoscaler = READ ndjson "/var/log/logline/bus_metrics.autoscaler.ndjson" latest=true;
+      if (autoscaler != null) {
+        sys.http.register_metric("gauge", "logline_workers", "Worker count by orbit", ["orbit"]);
+        sys.http.register_metric("gauge", "logline_orbit_score", "Autoscaling score by orbit", ["orbit"]);
+        
+        sys.http.set_metric("logline_workers", autoscaler.workers ?? 0, [autoscaler.orbit ?? "unknown"]);
+        sys.http.set_metric("logline_orbit_score", autoscaler.score ?? 0.0, [autoscaler.orbit ?? "unknown"]);
+      }
+      
+      // Collect Ledger Metrics
+      let ledger = READ ndjson "/var/log/logline/bus_metrics.ledger.ndjson" latest=true;
+      if (ledger != null) {
+        sys.http.register_metric("counter", "logline_ledger_spans_total", "Total spans recorded in ledger");
+        sys.http.register_metric("gauge", "logline_ledger_batch_size", "Latest batch size");
+        
+        sys.http.inc_counter("logline_ledger_spans_total", ledger.count ?? 0);
+        sys.http.set_metric("logline_ledger_batch_size", ledger.count ?? 0);
+      }
+      
+      // SLO Violations Counter
+      let violations_count = 0;
+      let viol_path = "/var/log/logline/bus_slo.violation.ndjson";
+      if (sys.fs.exists(viol_path)) {
+        violations_count = sys.fs.line_count(viol_path) ?? 0;
+      }
+      sys.http.register_metric("counter", "logline_slo_violations_total", "Total SLO violations");
+      sys.http.set_counter("logline_slo_violations_total", violations_count);
+      
+      // Receipt Counter
+      let receipt_count = 0;
+      let receipt_path = "/var/log/logline/bus_receipt.issued.ndjson";
+      if (sys.fs.exists(receipt_path)) {
+        receipt_count = sys.fs.line_count(receipt_path) ?? 0;
+      }
+      sys.http.register_metric("counter", "logline_receipts_issued_total", "Total receipts issued");
+      sys.http.set_counter("logline_receipts_issued_total", receipt_count);
+      
+      SLEEP interval_ms;
+    }
+  }
+}

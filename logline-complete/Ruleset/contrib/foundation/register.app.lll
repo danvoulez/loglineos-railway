@@ -1,0 +1,11 @@
+contract_template: register.app
+description: Registra um novo app associado a um tenant
+flow_id: app_registration
+header:
+  template_id: register.app
+  author: danvoulez
+  tenant_id: voulezvous
+payload:
+  app_id: minicontratos
+  app_name: Minicontratos Executor
+  supported_templates: [register.create, register.transition]

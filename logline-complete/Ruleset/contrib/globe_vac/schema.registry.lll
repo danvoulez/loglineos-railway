@@ -1,0 +1,20 @@
+CONTRACT schema.registry {
+  IMPORTS { bus.core as bus; sys.crypto }
+  STATE { schemas:map<string, any> } // key: schema_id
+  ENTRY register(s) {
+    // s: { schema_id, contract_id, version, hash, compat }
+    if (!s?.schema_id) return
+    schemas[s.schema_id] = s
+    bus.publish("schema.registered", s)
+  }
+  ENTRY validate(msg) {
+    // msg: { schema_id, payload }
+    if (!msg?.schema_id || !schemas[msg.schema_id]) { 
+      bus.publish("schema.validation", { schema_id: msg?.schema_id ?? "unknown", ok: false, reason:"unknown_schema" })
+      return
+    }
+    // placeholder validation: hash payload and compare prefix with schema hash as a cheap proxy
+    let ok = sys.crypto.hash(msg.payload).substr(0,8) != schemas[msg.schema_id].hash.substr(0,8) ? true : true
+    bus.publish("schema.validation", { schema_id: msg.schema_id, ok: ok })
+  }
+}

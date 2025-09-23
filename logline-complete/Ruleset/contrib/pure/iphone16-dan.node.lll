@@ -1,0 +1,13 @@
+node {
+  logline_id: "LID:device:iphone16-dan:v1"
+  tailscale: {
+    hostname: "iphone16-dan",
+    tag: "tv"
+  }
+  did_doc: {
+    "publicKey": "0xSIMULATEDKEYIPHONE16-DAN",
+    "type": "ECDSA",
+    "curve": "secp256k1"
+  }
+  registered_at: "2025-08-30T00:00:00Z"
+}

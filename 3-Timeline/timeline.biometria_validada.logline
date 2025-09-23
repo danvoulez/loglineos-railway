@@ -1,0 +1,10 @@
+span {
+  type: "biometria_validada"
+  span_id: "{{uuid}}"
+  handle: "@danvoulez"
+  internal_id: "logline-id://danvoulez"
+  created_at: "{{timestamp}}"
+  provenance: "onboarding"
+  agent: "logline-id://danvoulez"
+  score: "{{similarity_score}}"
+}

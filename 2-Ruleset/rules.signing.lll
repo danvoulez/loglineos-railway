@@ -1,0 +1,16 @@
+# rules.signing.lll - Quem pode assinar spans e contratos computáveis
+
+signing_rule {
+  allowed_status: ["validado", "institucional"]
+  allowed_span_types: ["contract_signed", "span_signed"]
+  min_trust_score: 80.0
+  forbidden_status: ["ghost", "revogado"]
+  audit: {
+    require_span: true,
+    log_action: "contract_signed"
+  }
+  error_handling: {
+    on_insufficient_trust: "reject"
+    on_forbidden_status: "reject"
+  }
+}

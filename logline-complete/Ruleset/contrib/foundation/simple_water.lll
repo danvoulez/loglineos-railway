@@ -1,0 +1,16 @@
+# Simple Water Molecule Simulation
+# Demonstrates basic molecular dynamics with water molecules
+
+PROTEIN "water_cluster"
+NAME "water_simulation"
+
+STAGE water_dynamics {
+    kernel: lj_coulomb
+    input positions: positions
+    input charges: forcefield
+    output forces: vector3
+    param temperature: 298.15
+    param timestep: 0.0005
+    param density: 1.0
+    param box_size: 20.0
+}

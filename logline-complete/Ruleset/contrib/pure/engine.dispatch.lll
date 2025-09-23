@@ -1,0 +1,14 @@
+contract {
+  version: "1.0"
+  id: "engine.dispatch"
+  workflow: "engine"
+  flow: "router"
+  tags: ["engine","router","connector"]
+  payload { strategy: "by.route.id" }
+  exec { run: ["routes.resolve","engine.execute"] }
+  signature { required: true signer: "logline-id://owner" }
+  federation { visibility: "public" allow: ["*"] }
+  provenance { source: <<'TEXT'
+connector.added
+TEXT>> migrated_at: "2025-09-15T08:25:40Z" }
+}

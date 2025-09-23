@@ -1,0 +1,37 @@
+# Hemoglobin Protein Folding Simulation
+# This example demonstrates a basic protein folding simulation using LJ+Coulomb forces
+
+PROTEIN "hemoglobin"
+NAME "hemoglobin_simulation"
+
+STAGE initialization {
+    kernel: lj_coulomb
+    input positions: positions
+    input charges: forcefield
+    output forces: vector3
+    param temperature: 300.0
+    param timestep: 0.001
+    param cutoff_distance: 12.0
+}
+
+STAGE equilibration {
+    kernel: lj_coulomb
+    input positions: positions
+    input charges: forcefield
+    output forces: vector3
+    param temperature: 300.0
+    param timestep: 0.0005
+    param steps: 1000
+}
+
+STAGE production {
+    kernel: lj_coulomb
+    input positions: positions
+    input charges: forcefield
+    output forces: vector3
+    output trajectory: positions
+    param temperature: 310.0
+    param timestep: 0.001
+    param steps: 5000
+    param save_frequency: 100
+}

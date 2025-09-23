@@ -1,0 +1,15 @@
+package "sdk.providers.flags_core" version "0.1.0"
+requires capability ["flags.core","kv"]
+
+policy FLAG_EVAL {
+  on flag.eval(name=?n, ctx=?c)
+  do effect emit_decision { action:"flag.answer", args:{ variant: choose(n,c) } }
+}
+
+operation "flag_get" {
+  method: GET, path: "/flags/{name}", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__flag_get__") })
+}
+
+fn choose(n:Text,c:Text)->Text { intrinsic "flags.choose" }
+model "Json" { fields:[ {name:"json", ty:"Text!", required:true} ] }

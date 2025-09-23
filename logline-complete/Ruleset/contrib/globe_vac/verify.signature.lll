@@ -1,0 +1,9 @@
+CONTRACT verify.signature {
+  IMPORTS { sys.crypto; bus.core as bus }
+  ENTRY verify(msg) {
+    // msg: { merkle_root, signed_by, signature }
+    if (!msg?.merkle_root || !msg?.signature) { return }
+    let ok = sys.crypto.verify(msg.merkle_root, msg.signature, msg.signed_by)
+    bus.publish("verify.result", { merkle_root: msg.merkle_root, ok: ok, signed_by: msg.signed_by })
+  }
+}

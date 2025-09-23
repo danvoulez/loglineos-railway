@@ -1,0 +1,3 @@
+package "sdk.compiler.lexer" version "0.1.0"
+record Token { kind: Text, lexeme: Text, pos: Int }
+fn lex(input: Bytes) -> List<Token> { intrinsic "lexer.run" }

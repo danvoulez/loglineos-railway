@@ -1,0 +1,11 @@
+package "sdk.providers.kv" version "0.1.0"
+requires capability ["kv"]
+
+policy KV {
+  on kv.put(ns=?ns,key=?k,val=?v) do effect kv_put { ns:ns, key:k, val:v }
+  on kv.get(ns=?ns,key=?k)        do effect emit_decision { action:"kv.got",
+                                     args:{ exist: exists(ns,k), val: as_text(maybe(ns,k)) } }
+}
+fn exists(ns: Text, k: Text) -> Text { intrinsic "kv.exists" }
+fn maybe(ns: Text, k: Text) -> Text { intrinsic "kv.get" }
+fn as_text(x: Text) -> Text { x }

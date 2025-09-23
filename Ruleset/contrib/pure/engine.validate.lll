@@ -1,0 +1,14 @@
+contract {
+  version: "1.0"
+  id: "engine.validate"
+  workflow: "engine"
+  flow: "validator"
+  tags: ["engine","validator","connector"]
+  payload { mode: "input.schema", on_error: "raise" }
+  exec { run: ["ruleset.validate.schema"] }
+  signature { required: true signer: "logline-id://owner" }
+  federation { visibility: "public" allow: ["*"] }
+  provenance { source: <<'TEXT'
+connector.added
+TEXT>> migrated_at: "2025-09-15T08:25:40Z" }
+}

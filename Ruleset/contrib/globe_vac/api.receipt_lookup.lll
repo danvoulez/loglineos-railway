@@ -1,0 +1,23 @@
+CONTRACT api.receipt_lookup {
+  IMPORTS { sys.http; bus.core as bus; }
+  STATE { index:map<string,any> }
+  ENTRY on_receipt(msg) {
+    // subscribe to receipt.issued
+    if (!msg?.span_id) return
+    index[msg.span_id] = msg
+  }
+  ENTRY http(req) {
+    // GET /receipts/{span_id}
+    if (req.method=="GET" && req.path.starts_with("/receipts/")) {
+      let sid = req.path.split("/")[2]
+      let rec = index[sid] ?? null
+      if (rec) {
+        sys.http.respond(req, 200, rec)
+      } else {
+        sys.http.respond(req, 404, { error:"not_found", span_id:sid })
+      }
+    } else {
+      sys.http.respond(req, 404, { error:"route_not_found" })
+    }
+  }
+}

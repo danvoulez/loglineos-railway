@@ -1,0 +1,8 @@
+package "sdk.std.list" version "0.1.0"
+
+fn push<T>(xs: List<T>, x: T) -> List<T> { intrinsic "list.push" }
+fn pop<T>(xs: List<T>) -> Result<(T,List<T>),Text> { intrinsic "list.pop" }
+fn length<T>(xs: List<T>) -> Int { intrinsic "list.len" }
+fn fold<T,U>(xs: List<T>, init: U, f: Fn(U,T)->U) -> U { intrinsic "list.fold" }
+fn map<T,U>(xs: List<T>, f: Fn(T)->U) -> List<U> { intrinsic "list.map" }
+fn concat<T>(a: List<T>, b: List<T>) -> List<T> { intrinsic "list.concat" }

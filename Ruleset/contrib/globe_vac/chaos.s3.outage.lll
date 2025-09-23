@@ -1,0 +1,6 @@
+CONTRACT chaos.s3.outage {
+  IMPORTS { bus.core as bus; sys.time }
+  ENTRY inject(msg) {
+    bus.publish("chaos.event", { type:"s3.outage", start: sys.time.now_ms(), duration_ms: msg?.duration_ms ?? 900000 })
+  }
+}

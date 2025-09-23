@@ -1,0 +1,13 @@
+
+start:
+  SIMULATE_TICK
+  METRIC name="simulate_tick" inc=1
+  SPAWN sign_and_store
+  RATE_LIMIT 100
+  JUMP start
+
+sign_and_store:
+  CANON_JSON
+  HMAC_JSON key="secret"
+  LEDGER_CREATE_INVOICE
+  RETURN

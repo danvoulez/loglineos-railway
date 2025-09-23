@@ -1,0 +1,87 @@
+package "universal_backend" version "1.0.0"
+import "sdk.core.*","sdk.ir.*","sdk.vm.*","sdk.providers.*","sdk.std.*"
+
+server "ub_server" {
+  protocol: "HTTP2",
+  bind_host: "0.0.0.0", bind_port: 8080,
+  worker_threads: 8, max_connections: 10000,
+  keep_alive_ms: 75000, idle_timeout_ms: 300000,
+  tcp_nodelay: true, tcp_backlog: 512,
+  description: "Backend universal 100% .lll"
+}
+
+security "global_cors" {
+  cors: { allow_origins:["*"], allow_methods:["GET","POST","PUT","DELETE","OPTIONS"],
+          allow_headers:["*"], max_age_sec: 86400 }
+}
+
+connection_policy "rate_limiter" {
+  id: "rate_limiter", scope: "GLOBAL", algorithm: "TOKEN_BUCKET",
+  max_requests: 2000, window_ms: 60000, burst: 500
+}
+
+# ---------------- Models ----------------
+model "HealthStatus" { fields: [ { name:"status", ty:"Text!", required:true }, { name:"uptime_ms", ty:"Int!", required:true } ] }
+model "EchoPayload"  { fields: [ { name:"message", ty:"Text!", required:true } ] }
+model "SumParams"    { fields: [ { name:"a", ty:"Int!", required:true }, { name:"b", ty:"Int!", required:true } ] }
+model "SumResult"    { fields: [ { name:"sum", ty:"Int!", required:true } ] }
+
+# ---------------- Basic Ops ----------------
+operation "health" {
+  method:"GET", path:"/health", request: null,
+  response: RespStatusModel(200,"HealthStatus"),
+  kind: NORMAL,
+  handler: Return({ "status": LitText("ok"), "uptime_ms": NowMs })
+}
+
+operation "echo" {
+  method:"POST", path:"/echo", request: Option<Text>("EchoPayload"),
+  response: RespModel("EchoPayload"), kind: NORMAL,
+  handler: Return({ "message": Field("message") })
+}
+
+operation "add" {
+  method:"POST", path:"/add", request: Option<Text>("SumParams"),
+  response: RespModel("SumResult"), kind: NORMAL,
+  handler: Return({ "sum": Add(Field("a"), Field("b")) })
+}
+
+operation "stream_time" {
+  method:"GET", path:"/stream/time", request: null,
+  response: RespSSE, kind: SSE,
+  handler: Stream(SSESpec { interval_ms:1000, heartbeat_ms:15000, retry_ms:3000 },
+                  { "timestamp": NowMs })
+}
+
+# ---------------- Telemetry & SLO ----------------
+# (expostos via providers: /telemetry/q, /telemetry/stream, /ui/telemetry, /telemetry/slo)
+
+# ---------------- Auth / Flags / Experimentos ----------------
+# Mint de token
+operation "token_mint" { method:"POST", path:"/auth/mint", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__paseto_mint__") }) }
+
+# Avaliação de flag via HTTP (name no path)
+operation "flag_get" { method: GET, path:"/flags/{name}", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__flag_get__") }) }
+
+# Assign A/B via HTTP
+operation "ab_assign_http" { method: GET, path: "/exp/{name}/assign", response: RespStatusModel(200,"Json"), kind: NORMAL,
+  handler: Return({ "json": LitText("__exp_assign__") }) }
+
+# ---------------- Search ----------------
+# /_search/text e /_search/vector já montados pelos providers
+
+# ---------------- Deployment ----------------
+deployment "run_universal_backend" {
+  steps: [
+    "bind_server:ub_server",
+    "apply_security:global_cors",
+    "apply_connection_policies:rate_limiter",
+    "mount_operations:health,echo,add,stream_time,telemetry_query,telemetry_stream,telemetry_ui,slo_list,token_mint,flag_get,ab_assign_http,index_search,index_search_vector",
+    "init_telemetry:telemetry_core,slo_engine",
+    "init_addons:flags_core,ab_elo,auth_core,flow_engine,oncall_core",
+    "start"
+  ]
+  auto_reload: true
+}

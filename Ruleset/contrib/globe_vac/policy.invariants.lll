@@ -1,0 +1,20 @@
+CONTRACT policy.invariants {
+  IMPORTS { bus.core as bus }
+  // Simple invariants enforcement
+  ENTRY on_span_admitted(span) {
+    // Invariant: consent is required
+    if (!span?.metadata?.consent_ok && span?.type!="public") {
+      bus.publish("slo.violation", { invariant:"consent_required", span_id: span?.span_id ?? "unknown" })
+    }
+  }
+  ENTRY on_receipt(rec) {
+    // Invariant: At most one receipt per span
+    // naive local memory; production would require ledger check
+    static seen:map<string,bool>
+    if (seen[rec.span_id]) {
+      bus.publish("slo.violation", { invariant:"at_most_one_receipt", span_id: rec.span_id })
+    } else {
+      seen[rec.span_id] = true
+    }
+  }
+}

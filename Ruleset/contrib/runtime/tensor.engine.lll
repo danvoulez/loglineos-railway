@@ -1,0 +1,24 @@
+;═════════════════════════════════════════════════════════════════════════════
+;   BLOCO 5-B · ENGINE  (compile-time & runtime)
+;═════════════════════════════════════════════════════════════════════════════
+CONTRACT tensor.engine {
+  IMPORTS { sys.fs; sys.shell; sys.dylib; sys.time; tensor.kernels as k; bus.core as bus }
+  FUNC ensure_metallib() {
+    if (sys.fs.exists("tensor_kernels.metallib")) { return; }
+    WRITE file "matmul_tiled16.metal" k.matmul_tiled16;
+    WRITE file "conv2d_patch8.metal"  k.conv2d_patch8;
+    sys.shell.exec("xcrun -sdk macosx metal -O3 matmul_tiled16.metal -o matmul_tiled16.air");
+    sys.shell.exec("xcrun -sdk macosx metal -O3 conv2d_patch8.metal  -o conv2d_patch8.air");
+    sys.shell.exec("xcrun -sdk macosx metallib matmul_tiled16.air conv2d_patch8.air -o tensor_kernels.metallib");
+  }
+  INIT dylib = sys.dylib.open("libtensor_engine.dylib")
+  INIT _ = CALL ensure_metallib()
+  FUNC tensor_forward(span)->out {
+    let t0 = sys.time.now_ns()
+    let res = dylib.call("tensor_forward", [span])
+    let dt = (sys.time.now_ns() - t0) / 1_000_000.0
+    bus.publish("metrics.latency.hot", { p99: dt, ts_ms: sys.time.now_ms() })
+    return res
+  }
+  ENTRY forward(span)->out { return CALL tensor_forward(span) }
+}

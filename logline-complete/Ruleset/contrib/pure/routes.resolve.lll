@@ -1,0 +1,14 @@
+contract {
+  version: "1.0"
+  id: "routes.resolve"
+  workflow: "routes"
+  flow: "resolve"
+  tags: ["routes","resolver","connector"]
+  payload { algorithm: "exact|parametric" }
+  exec { run: ["registry.lookup","ruleset.match"] }
+  signature { required: true signer: "logline-id://owner" }
+  federation { visibility: "public" allow: ["*"] }
+  provenance { source: <<'TEXT'
+connector.added
+TEXT>> migrated_at: "2025-09-15T08:25:40Z" }
+}

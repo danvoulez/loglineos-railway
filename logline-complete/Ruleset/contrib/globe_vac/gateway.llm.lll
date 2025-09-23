@@ -1,0 +1,22 @@
+CONTRACT gateway.llm {
+  IMPORTS { sys.llm; sys.time; sys.hash; sys.vault; bus.core as bus }
+  PARAMS { model:string="gpt-4o", max_tokens:u32=2048, temperature:f64=0.7, token_limit_per_user:u32=100_000 }
+  STATE  { tokens_used:map<string,u32> }
+  ENTRY call(req) -> resp {
+    let uid  = req.user_id ?? "anon"
+    let trace= req.trace_id ?? sys.hash.blake3(req.prompt)
+    let seed = req.seed ?? sys.time.now_ms()
+    let now  = sys.time.now_ms()
+    if ((tokens_used[uid]??0) >= token_limit_per_user) { return { error:"token quota exceeded", trace_id:trace } }
+    let res = sys.llm.call({ model, max_tokens, temperature, prompt:req.prompt, seed })
+    tokens_used[uid] = (tokens_used[uid]??0) + res.tokens_out
+    let span = {
+      trace_id: trace, span_id: sys.hash.blake3(trace + now), class:"warm", type:"llm",
+      prompt:req.prompt, response:res.text, embedding:res.embedding,
+      quality: res.tokens_out / (res.tokens_in+1.0),
+      tokens_in:res.tokens_in, tokens_out:res.tokens_out, model:model, user_id:uid, seed, ts_ms:now
+    }
+    bus.publish("admitted.spans", span)
+    return { response:res.text, trace_id:trace, tokens_in:res.tokens_in, tokens_out:res.tokens_out, span_id:span.span_id }
+  }
+}

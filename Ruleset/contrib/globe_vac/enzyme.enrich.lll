@@ -1,0 +1,12 @@
+CONTRACT enzyme.enrich {
+  IMPORTS { bus.core as bus; sys.vault; sys.time }
+  ENTRY enrich(span) {
+    let enriched = span
+    if (span.type == "finance") {
+      let cliente = sys.vault.get("cliente_tags", span.text) ?? "desconhecido"
+      enriched.enrichment = { cliente_tag: cliente, enriched_at: sys.time.now_ms() }
+    }
+    bus.publish("admitted.spans", enriched)
+    bus.publish("enzyme.confirm", { action:"enrich", trace_id:span.trace_id, span_id:span.span_id, ts_ms: sys.time.now_ms() })
+  }
+}

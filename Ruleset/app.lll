@@ -1,0 +1,9 @@
+contract ruleset.app {
+  workflow: "rules"
+  flow: "app"
+  description: "Regras de app; herda de system"
+
+  meta { inherits: "ruleset.system" }
+
+  api { fn validate_app(contract: bytes) -> receipt {} }
+}
