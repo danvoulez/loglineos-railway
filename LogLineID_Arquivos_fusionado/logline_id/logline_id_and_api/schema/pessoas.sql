@@ -1,0 +1,2 @@
+-- logline_id/logline_id_and_api/schema/pessoas.sql
+-- Placeholder: pessoas table schema

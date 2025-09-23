@@ -1,0 +1,10 @@
+span {
+  type: "deleted"
+  span_id: "{{uuid}}"
+  handle: "@danvoulez"
+  internal_id: "logline-id://danvoulez"
+  created_at: "{{timestamp}}"
+  provenance: "revocation"
+  agent: "logline-id://danvoulez"
+  reason: "revogada por solicitação ou violação"
+}

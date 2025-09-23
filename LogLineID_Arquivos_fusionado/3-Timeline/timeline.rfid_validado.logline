@@ -1,0 +1,10 @@
+span {
+  type: "rfid_validado"
+  span_id: "{{uuid}}"
+  handle: "@rafa_rfid"
+  internal_id: "logline-id://rafa_rfid"
+  created_at: "{{timestamp}}"
+  provenance: "onboarding"
+  agent: "logline-id://rafa_rfid"
+  rfid_serial: "{{rfid_serial}}"
+}

@@ -1,0 +1,2 @@
+-- logline_id/motor/ledger/migrations/create_published_spans.sql
+-- Migration: Create published_spans table

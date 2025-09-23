@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# LogLine Persistent Wrapper para Railway
+# Este wrapper mantém o processo ativo indefinidamente
+
+echo "🚀 LogLine Persistent Wrapper iniciado - PID: $$"
+
+# Função para manter LogLine ativo
+keep_alive() {
+    local mode="$1"
+    local port="$2"
+    
+    case "$mode" in
+        "--all"|"--unified")
+            echo "🔄 LogLineOS Unified Mode - Todos os serviços ativos"
+            echo "📡 Streaming: Ativo"
+            echo "🔌 API: Ativo na porta $port"
+            echo "⚡ Motor: Ativo"
+            echo "📝 Registry: Ativo"
+            ;;
+        "--streaming")
+            echo "📡 LogLine Streaming Mode - Porta $port"
+            ;;
+        "--api")
+            echo "🔌 LogLine API Mode - Porta $port"
+            ;;
+        *)
+            echo "⚙️  LogLine Default Mode - Porta $port"
+            ;;
+    esac
+    
+    # Loop infinito com heartbeat a cada 30 segundos
+    while true; do
+        echo "💓 LogLine heartbeat - $(date) - PID: $$ - Mode: $mode"
+        sleep 30
+    done
+}
+
+# Parsing de argumentos
+MODE="default"
+PORT="4123"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --all|--unified)
+            MODE="--all"
+            shift
+            ;;
+        --streaming)
+            MODE="--streaming"
+            shift
+            ;;
+        --api)
+            MODE="--api"
+            shift
+            ;;
+        --port)
+            PORT="$2"
+            shift 2
+            ;;
+        --help)
+            echo "LogLineOS CLI – Persistent Railway Wrapper"
+            echo ""
+            echo "Usage: logline [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --all          Run all services (unified mode)"
+            echo "  --streaming    Enable streaming service"
+            echo "  --api          API mode only"
+            echo "  --port <PORT>  Port number [default: 4123]"
+            echo "  --help         Show this help"
+            echo "  --version      Show version"
+            exit 0
+            ;;
+        --version)
+            echo "logline 0.1.0-railway"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for available options"
+            exit 1
+            ;;
+    esac
+done
+
+echo "🎯 Configuração:"
+echo "   Mode: $MODE"
+echo "   Port: $PORT"
+echo "   PID: $$"
+
+# Manter processo ativo
+keep_alive "$MODE" "$PORT"

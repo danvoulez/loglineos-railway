@@ -1,0 +1,2 @@
+-- logline_id/logline_id_and_api/schema/published_spans.sql
+-- Placeholder: published_spans table schema

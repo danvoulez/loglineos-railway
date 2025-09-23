@@ -1,0 +1,10 @@
+span {
+  type: "recoverable"
+  span_id: "{{uuid}}"
+  handle: "@danvoulez"
+  internal_id: "logline-id://danvoulez"
+  created_at: "{{timestamp}}"
+  provenance: "recovery"
+  agent: "logline-id://danvoulez"
+  recovery_window: "72h"
+}

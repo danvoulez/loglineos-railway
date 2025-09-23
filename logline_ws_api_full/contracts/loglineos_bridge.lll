@@ -1,0 +1,142 @@
+// LogLineOS Bridge - Integração com API .lll
+// Este contrato conecta o motor LogLineOS com sua API .lll WebSocket/Webhook
+
+contract loglineos_bridge version "1.0.0" {
+  meta: {
+    id: "vv.loglineos.bridge";
+    description: "Ponte bidirecional entre API .lll WebSocket e LogLineOS Railway";
+    railway_endpoint: "https://loglineos-production.up.railway.app";
+    api_key: "4ee55a33-e802-496c-8083-614b639ca678";
+  }
+
+  requires: [
+    "contracts/handle_incoming_event.lll",
+    "contracts/webhook_dispatcher.lll",
+    "logline/ws_authenticator.lll"
+  ]
+
+  // Configuração da ponte
+  params: {
+    loglineos_base_url: "https://loglineos-production.up.railway.app",
+    loglineos_api_key: "4ee55a33-e802-496c-8083-614b639ca678",
+    bridge_mode: "bidirectional"
+  }
+
+  // API .lll → LogLineOS (encaminha eventos para processamento)
+  on event "bridge.forward_to_logline" with { event_type, payload, context }:
+    let logline_payload = {
+      contract: event_type,
+      data: payload,
+      source: "api_lll_bridge",
+      context: context,
+      timestamp: now()
+    };
+    
+    let response = http.post (params.loglineos_base_url + "/api/logline/emit") with {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + params.loglineos_api_key,
+        "X-Source": "api-lll-bridge"
+      },
+      body: to_json(logline_payload),
+      timeout_ms: 5000
+    };
+    
+    if response.status == 200 {
+      emit_span "bridge_to_logline_ok" { 
+        event_type: event_type, 
+        logline_response: response.body,
+        ts: now() 
+      };
+      return { status: "forwarded", logline_result: response.body };
+    } else {
+      emit_span "bridge_to_logline_fail" { 
+        event_type: event_type, 
+        error_code: response.status,
+        ts: now() 
+      };
+      return { status: "error", error_code: response.status };
+    }
+
+  // LogLineOS → API .lll (recebe callbacks/resultados)
+  on webhook_receive "logline_callback" with { contract, result, status, metadata }:
+    let api_event = {
+      type: "logline_result",
+      contract: contract,
+      result: result,
+      status: status,
+      metadata: metadata,
+      processed_at: now()
+    };
+    
+    // Broadcast para clientes WebSocket conectados
+    call "runtime/websocket_broadcaster.lll" with { 
+      message: api_event,
+      filter: { interested_in: [contract, "logline_results"] }
+    };
+    
+    // Opcional: webhook para sistemas externos
+    if metadata.forward_webhook {
+      call "contracts/webhook_dispatcher.lll" with { 
+        event: api_event, 
+        target: metadata.webhook_target 
+      };
+    }
+    
+    emit_span "logline_callback_processed" { 
+      contract: contract, 
+      status: status,
+      broadcasted: true,
+      ts: now() 
+    };
+
+  // Integração específica com handle_incoming_event.lll
+  patch "contracts/handle_incoming_event.lll" {
+    // Adicionar novos tipos de evento que integram com LogLineOS
+    on match "logline_contract" => {
+      assert data.contract_name != null, "contract_name ausente";
+      assert data.contract_data != null, "contract_data ausente";
+      
+      let bridge_result = emit_event "bridge.forward_to_logline" with {
+        event_type: data.contract_name,
+        payload: data.contract_data,
+        context: { llid: ctx.logline_id, session_id: data.session_id ?? null }
+      };
+      
+      return { 
+        status: "processing", 
+        reply: { 
+          type: "logline_processing", 
+          contract: data.contract_name,
+          status: bridge_result.status 
+        },
+        webhook: null 
+      };
+    },
+    
+    on match "logline_status" => {
+      // Consultar status do LogLineOS
+      let health = http.get (params.loglineos_base_url + "/health") with {
+        headers: { "Authorization": "Bearer " + params.loglineos_api_key }
+      };
+      
+      return { 
+        status: "ok", 
+        reply: { 
+          type: "logline_status", 
+          healthy: health.status == 200,
+          loglineos_info: health.body 
+        } 
+      };
+    }
+  }
+
+  // Health check da ponte
+  on call "health_check":
+    let logline_health = http.get (params.loglineos_base_url + "/health");
+    return {
+      bridge_status: "active",
+      loglineos_connection: logline_health.status == 200 ? "ok" : "fail",
+      last_check: now()
+    };
+}

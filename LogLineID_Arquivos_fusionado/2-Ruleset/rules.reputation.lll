@@ -1,0 +1,21 @@
+# rules.reputation.lll - Acúmulo computável de reputação/credit score
+
+reputation_rule {
+  base_score: 80.0
+  event_increments: {
+    contract_signed: 5.0,
+    published_span: 2.0,
+    positive_feedback: 3.0
+  }
+  event_decrements: {
+    revocation: -10.0,
+    ghost_expired: -3.0,
+    audit_fail: -5.0
+  }
+  max_score: 100.0
+  min_score: 0.0
+  audit: {
+    require_span: true,
+    log_action: "score_change"
+  }
+}

@@ -1,0 +1,21 @@
+# rules.transition.lll - Transição computável de estados de identidade
+
+transition_rule {
+  allowed_transitions: [
+    {from: "ghost", to: "validado", condition: "biometria_validada"},
+    {from: "validado", to: "institucional", condition: "contrato_assinado"}
+  ]
+  forbidden_transitions: [
+    {from: "institucional", to: "ghost"},
+    {from: "ghost", to: "institucional"}
+  ]
+  onboarding_span: "identity_transitioned"
+  audit: {
+    require_span: true,
+    log_action: "transition"
+  }
+  error_handling: {
+    on_forbidden: "reject"
+    on_missing_condition: "reject"
+  }
+}

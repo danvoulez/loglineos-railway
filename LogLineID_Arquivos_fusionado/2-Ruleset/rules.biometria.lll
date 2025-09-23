@@ -1,0 +1,22 @@
+# rules.biometria.lll - Validação computável de biometria facial e vocal
+
+biometria_rule {
+  required_fields: ["embedding", "score"]
+  min_score: 0.80
+  methods: ["facial", "vocal"]
+  allow_cross_validation: true
+  onboarding_span: "biometria_validada"
+  audit: {
+    require_span: true,
+    log_action: "transition"
+  }
+  rejection: {
+    on_low_score: true,
+    on_invalid_embedding: true
+    on_expired: true
+  }
+  error_handling: {
+    on_missing_fields: "reject"
+    on_invalid_method: "reject"
+  }
+}

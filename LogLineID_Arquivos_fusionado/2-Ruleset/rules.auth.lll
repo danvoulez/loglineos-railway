@@ -1,0 +1,35 @@
+# rules.auth.lll - Regras computáveis de autenticação LogLineID
+# Define métodos permitidos, restrições de ghost, institucional, e mínima validação.
+
+auth_rule {
+  requires: ["internal_id", "handle", "auth_method"]
+  allowed_methods: [
+    "senha",
+    "biometria_facial",
+    "biometria_vocal",
+    "rfid",
+    "fingerprint",
+    "ghost_token"
+  ]
+  ghost_mode: {
+    permitted: true,
+    expiration: "48h",
+    max_attempts: 3,
+    min_entropy: 0.8
+  }
+  institutional: {
+    permitted: true,
+    requires_contract: true,
+    min_trust_score: 80.0
+  }
+  validation: {
+    min_spans: 2,
+    status: ["validado", "institucional"]
+    audit: "identity_created, biometria_validada"
+  }
+  forbidden_status: ["revogado"]
+  error_handling: {
+    on_missing_fields: "reject",
+    on_invalid_status: "reject"
+  }
+}

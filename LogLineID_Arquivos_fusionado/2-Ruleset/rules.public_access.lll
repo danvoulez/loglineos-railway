@@ -1,0 +1,16 @@
+# rules.public_access.lll - Critérios computáveis para perfil público
+
+public_access_rule {
+  requires_status: ["validado", "institucional"]
+  min_trust_score: 75.0
+  min_spans: 2
+  forbidden_status: ["ghost", "revogado"]
+  audit: {
+    require_span: true,
+    log_action: "public_access"
+  }
+  error_handling: {
+    on_missing_trust: "reject"
+    on_wrong_status: "reject"
+  }
+}

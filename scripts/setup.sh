@@ -57,71 +57,8 @@ if [ ! -f "/usr/local/bin/logline" ]; then
     
     # Se não conseguir baixar, criar wrapper funcional
     if [ ! -f "/usr/local/bin/logline" ]; then
-        echo "⚠️  Criando wrapper LogLine simulado"
-        cat > /usr/local/bin/logline << 'EOF'
-#!/bin/bash
-
-# LogLine Wrapper para Railway
-# Este é um wrapper que simula o comportamento básico do LogLine
-
-case "$1" in
-    "--version")
-        echo "logline 0.1.0-railway"
-        ;;
-    "--help")
-        echo "LogLineOS CLI – Unified MiniVault + VoulezVous System"
-        echo ""
-        echo "Usage: logline [OPTIONS] [COMMAND]"
-        echo ""
-        echo "Commands:"
-        echo "  emit      Emit a contract transaction"
-        echo "  registry  Work with the contract registry"
-        echo "  flow      Create and manage execution flows"
-        echo "  ui        Launch and manage UI components"
-        echo "  simulate  Simulate contract execution"
-        echo "  stream    VoulezVous streaming commands"
-        echo "  help      Print this message or the help of the given subcommand(s)"
-        ;;
-    "emit")
-        echo "Contract emission simulated: $2"
-        echo '{"status": "success", "contract": "'$2'", "timestamp": "'$(date -Iseconds)'"}'
-        ;;
-    "registry")
-        if [ "$2" = "list" ]; then
-            echo "base.logline"
-            echo "security.logline" 
-            echo "api.logline"
-        else
-            echo "Registry command: $2"
-        fi
-        ;;
-    "simulate")
-        echo "Simulation for contract: $2"
-        echo '{"simulation": "success", "contract": "'$2'", "result": "Contract would execute successfully"}'
-        ;;
-    "flow"|"ui"|"stream")
-        echo "Service $1 starting..."
-        # Para comandos de longa duração, simular serviço rodando
-        while true; do
-            echo "LogLine $1 service running..." >&2
-            sleep 30
-        done
-        ;;
-    "--all")
-        echo "Starting LogLineOS in unified mode..."
-        echo "All services initialized"
-        # Manter processo ativo com logs periódicos
-        while true; do
-            echo "LogLineOS unified mode running - $(date)" >&2
-            sleep 30
-        done
-        ;;
-    *)
-        echo "LogLineOS Railway Wrapper"
-        echo "Use --help for available commands"
-        ;;
-esac
-EOF
+        echo "⚠️  Copiando wrapper LogLine persistente"
+        cp /app/logline-persistent /usr/local/bin/logline
         chmod +x /usr/local/bin/logline
     fi
 fi

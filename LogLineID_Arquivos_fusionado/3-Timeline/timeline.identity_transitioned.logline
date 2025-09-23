@@ -1,0 +1,11 @@
+span {
+  type: "identity_transitioned"
+  span_id: "{{uuid}}"
+  handle: "@danvoulez"
+  internal_id: "logline-id://danvoulez"
+  created_at: "{{timestamp}}"
+  provenance: "transition"
+  agent: "logline-id://danvoulez"
+  previous_status: "ghost"
+  new_status: "validado"
+}

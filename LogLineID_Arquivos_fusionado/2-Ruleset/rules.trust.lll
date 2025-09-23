@@ -1,0 +1,21 @@
+# rules.trust.lll - Acúmulo computável de confiabilidade
+
+trust_rule {
+  accumulation_method: "por span de validação"
+  increment_per_event: 1.2
+  initial_score: 80.0
+  span_types: [
+    "identity_created",
+    "biometria_validada",
+    "contract_signed"
+  ]
+  decay: {
+    period: "30d",
+    amount: 2.0
+  }
+  minimum_threshold: 75.0
+  audit: {
+    require_span: true,
+    log_action: "decay"
+  }
+}

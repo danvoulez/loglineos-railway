@@ -1,0 +1,9 @@
+span {
+  type: "identity_created"
+  span_id: "{{uuid}}"
+  handle: "@danvoulez"
+  internal_id: "logline-id://danvoulez"
+  created_at: "{{timestamp}}"
+  provenance: "onboarding"
+  agent: "logline-id://danvoulez"
+}

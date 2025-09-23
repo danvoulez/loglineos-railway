@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://logline.id/schemas/identity_payload.schema.json",
+  "title": "LogLine Identity Payload",
+  "type": "object",
+  "required": [
+    "logline_id",
+    "name",
+    "circle_id",
+    "trust_score",
+    "permissions"
+  ],
+  "properties": {
+    "logline_id": {
+      "type": "string",
+      "pattern": "^logline-id://[a-zA-Z0-9._:-]+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "avatar_url": {
+      "type": "string"
+    },
+    "circle_id": {
+      "type": "string"
+    },
+    "trust_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "circles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "issued_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "token": {
+      "type": "string"
+    }
+  }
+}

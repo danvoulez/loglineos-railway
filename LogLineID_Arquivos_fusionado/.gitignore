@@ -1,0 +1,15 @@
+.DS_Store
+*.log
+node_modules/
+dist/
+build/
+target/
+.env
+.env.*
+coverage/
+/target
+**/*.rs.bk
+.next/
+out/
+.vscode/
+.idea/

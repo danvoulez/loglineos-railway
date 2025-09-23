@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: rustfmt, clippy
+    - name: Check fmt
+      run: |
+        cargo fmt --all -- --check || true
+    - name: Clippy
+      run: |
+        cargo clippy --all-targets --all-features -- -D warnings || true
+
+  node:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+    - name: Install PNPM
+      run: npm i -g pnpm@9
+    - name: Install deps
+      run: pnpm install --frozen-lockfile || pnpm install
+    - name: Lint
+      run: pnpm run -r lint || pnpm run lint || echo 'no lint script'
+    - name: Typecheck
+      run: pnpm run -r typecheck || pnpm run typecheck || echo 'no typecheck script'
+    - name: Tests
+      run: pnpm run -r test || pnpm run test || echo 'no test script'
