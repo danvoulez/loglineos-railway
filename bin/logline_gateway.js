@@ -14,11 +14,19 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Utility function to compute binary signature
+function computeBinarySignature(version = '1.0.0') {
+    const timestamp = process.env.BUILD_TIMESTAMP || 'dev';
+    const commit = process.env.GIT_COMMIT || 'local';
+    
+    return `gateway_v${version}_${timestamp}_${commit}`;
+}
+
 // Binary configuration
 const BINARY_CONFIG = {
     logline_id: 'logline-id://app.logline_gateway',
     version: '1.0.0',
-    signature: computeBinarySignature(),
+    signature: computeBinarySignature('1.0.0'),
     built_at: new Date().toISOString(),
     binaries: {
         motor: './bin/logline_motor',
@@ -256,14 +264,6 @@ function checkBinaryExecutable(binaryPath) {
     } catch {
         return false;
     }
-}
-
-function computeBinarySignature() {
-    const version = BINARY_CONFIG?.version || '1.0.0';
-    const timestamp = process.env.BUILD_TIMESTAMP || 'dev';
-    const commit = process.env.GIT_COMMIT || 'local';
-    
-    return `gateway_v${version}_${timestamp}_${commit}`;
 }
 
 // Start server
